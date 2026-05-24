@@ -1,0 +1,81 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "User Profile",
+      "description": "Comprehensive financial and career profile of the user.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "name": { "type": "string" },
+        "age": { "type": "number" },
+        "city": { "type": "string" },
+        "education": { "type": "string" },
+        "maritalStatus": { "type": "string" },
+        "archetype": { "type": "string" },
+        "jobTitle": { "type": "string" },
+        "experience": { "type": "number" },
+        "salary": { "type": "number" },
+        "industry": { "type": "string" },
+        "employmentType": { "type": "string" },
+        "bankBalance": { "type": "number" },
+        "monthlySavings": { "type": "number" },
+        "mutualFunds": { "type": "number" },
+        "fixedDeposits": { "type": "number" },
+        "takeHomeIncome": { "type": "number" },
+        "monthlyExpenses": { "type": "number" },
+        "assets": { "type": "array" },
+        "loans": { "type": "array" },
+        "monthlyEmi": { "type": "number" },
+        "outstandingDebt": { "type": "number" },
+        "goals": { "type": "array" },
+        "primaryGoal": { "type": "string" },
+        "riskLevel": { "type": "string" },
+        "riskTolerance": { "type": "number" },
+        "financialRunway": { "type": "number" },
+        "dependents": { "type": "number" },
+        "locationFlexibility": { "type": "string" },
+        "commitments": { "type": "array" },
+        "timelineUrgency": { "type": "string" },
+        "extraContext": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "name"]
+    },
+    "ScenarioSettings": {
+      "title": "Scenario Settings",
+      "description": "User's active scenario and custom adjustments.",
+      "type": "object",
+      "properties": {
+        "activeScenarioId": { "type": "string" },
+        "savingsRate": { "type": "number" },
+        "salaryGrowth": { "type": "number" },
+        "investmentReturn": { "type": "number" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "ScenarioData": {
+      "title": "Scenario Data",
+      "description": "The generated scenarios for the user.",
+      "type": "object",
+      "properties": {
+        "scenarios": { "type": "array" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      }
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "Stores individual user profiles."
+    },
+    "/users/{userId}/settings/current": {
+      "schema": "ScenarioSettings",
+      "description": "Stores user-specific scenario preferences."
+    },
+    "/users/{userId}/scenarios/latest": {
+      "schema": "ScenarioData",
+      "description": "Stores the latest generated scenarios."
+    }
+  }
+}

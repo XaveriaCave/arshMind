@@ -1,0 +1,8 @@
+{
+  "name": "ArshMind",
+  "description": "A futuristic financial and career trajectory planning tool with AI-driven scenario modeling.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

@@ -1,0 +1,381 @@
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  --font-game: "Press Start 2P", cursive;
+}
+
+@layer base {
+  body {
+    @apply bg-[#0A0A0B] text-slate-300 antialiased overflow-x-hidden;
+  }
+}
+
+@layer components {
+  .hud-glass {
+    @apply bg-[#0F1115]/80 backdrop-blur-md border border-slate-800;
+  }
+  
+  .border-geom {
+    @apply border-slate-800;
+  }
+
+  .accent-emerald {
+    @apply text-emerald-500;
+  }
+
+  .bg-emerald {
+    @apply bg-emerald-500;
+  }
+
+  .glitch {
+    position: relative;
+    text-shadow: 0.05em 0 0 rgba(255, 0, 0, 0.75),
+      -0.025em -0.05em 0 rgba(0, 255, 0, 0.75),
+      0.025em 0.05em 0 rgba(0, 0, 255, 0.75);
+    animation: glitch 500ms infinite;
+  }
+
+  @keyframes glitch {
+    0% {
+      text-shadow: 0.05em 0 0 rgba(255, 0, 0, 0.75),
+        -0.025em -0.05em 0 rgba(0, 255, 0, 0.75),
+        0.025em 0.05em 0 rgba(0, 0, 255, 0.75);
+    }
+    14% {
+      text-shadow: 0.05em 0 0 rgba(255, 0, 0, 0.75),
+        -0.025em -0.05em 0 rgba(0, 255, 0, 0.75),
+        0.025em 0.05em 0 rgba(0, 0, 255, 0.75);
+    }
+    15% {
+      text-shadow: -0.05em -0.025em 0 rgba(255, 0, 0, 0.75),
+        0.025em 0.025em 0 rgba(0, 255, 0, 0.75),
+        -0.05em -0.05em 0 rgba(0, 0, 255, 0.75);
+    }
+    49% {
+      text-shadow: -0.05em -0.025em 0 rgba(255, 0, 0, 0.75),
+        0.025em 0.025em 0 rgba(0, 255, 0, 0.75),
+        -0.05em -0.05em 0 rgba(0, 0, 255, 0.75);
+    }
+    50% {
+      text-shadow: 0.025em 0.05em 0 rgba(255, 0, 0, 0.75),
+        0.05em 0 0 rgba(0, 255, 0, 0.75),
+        0 -0.05em 0 rgba(0, 0, 255, 0.75);
+    }
+    99% {
+      text-shadow: 0.025em 0.05em 0 rgba(255, 0, 0, 0.75),
+        0.05em 0 0 rgba(0, 255, 0, 0.75),
+        0 -0.05em 0 rgba(0, 255, 0, 0.75);
+    }
+    100% {
+      text-shadow: -0.025em 0 0 rgba(255, 0, 0, 0.75),
+        -0.025em -0.025em 0 rgba(0, 255, 0, 0.75),
+        -0.025em -0.05em 0 rgba(0, 0, 255, 0.75);
+    }
+  }
+
+  /* Custom Scrollbar */
+  ::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-[#0A0A0B];
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-slate-800 hover:bg-emerald-500/30 transition-colors;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+/* ==========================================================================
+   Light Mode Theme Overrides
+   ========================================================================== */
+html.light img, html.light video, html.light iframe {
+  opacity: 0.95;
+}
+
+html.light body {
+  background-color: #f8fafc !important;
+  color: #334155 !important;
+}
+
+html.light .bg-black,
+html.light [class*="bg-black/"],
+html.light [class*="bg-black\/"] {
+  background-color: #ffffff !important;
+}
+
+html.light [class*="bg-black/95"], html.light [class*="bg-black\/95"] { background-color: rgba(255, 255, 255, 0.95) !important; }
+html.light [class*="bg-black/90"], html.light [class*="bg-black\/90"] { background-color: rgba(255, 255, 255, 0.9) !important; }
+html.light [class*="bg-black/85"], html.light [class*="bg-black\/85"] { background-color: rgba(255, 255, 255, 0.85) !important; }
+html.light [class*="bg-black/80"], html.light [class*="bg-black\/80"] { background-color: rgba(255, 255, 255, 0.8) !important; }
+html.light [class*="bg-black/75"], html.light [class*="bg-black\/75"] { background-color: rgba(255, 255, 255, 0.75) !important; }
+html.light [class*="bg-black/70"], html.light [class*="bg-black\/70"] { background-color: rgba(255, 255, 255, 0.7) !important; }
+html.light [class*="bg-black/60"], html.light [class*="bg-black\/60"] { background-color: rgba(255, 255, 255, 0.6) !important; }
+html.light [class*="bg-black/50"], html.light [class*="bg-black\/50"] { background-color: rgba(255, 255, 255, 0.5) !important; }
+html.light [class*="bg-black/40"], html.light [class*="bg-black\/40"] { background-color: rgba(255, 255, 255, 0.4) !important; }
+html.light [class*="bg-black/30"], html.light [class*="bg-black\/30"] { background-color: rgba(255, 255, 255, 0.3) !important; }
+html.light [class*="bg-black/20"], html.light [class*="bg-black\/20"] { background-color: rgba(255, 255, 255, 0.2) !important; }
+html.light [class*="bg-black/10"], html.light [class*="bg-black\/10"] { background-color: rgba(255, 255, 255, 0.1) !important; }
+
+html.light .bg-\[\#0A0A0B\] {
+  background-color: #f1f5f9 !important;
+}
+
+html.light .bg-\[\#0F1115\] {
+  background-color: #ffffff !important;
+}
+
+html.light .border-geom {
+  border-color: #e2e8f0 !important;
+}
+
+html.light .border-white\/5 {
+  border-color: #e2e8f0 !important;
+}
+
+html.light .border-white\/10 {
+  border-color: #cbd5e1 !important;
+}
+
+html.light .text-slate-300 {
+  color: #1e293b !important;
+}
+
+html.light .text-slate-400 {
+  color: #334155 !important;
+}
+
+html.light .text-slate-500 {
+  color: #475569 !important;
+}
+
+html.light .text-slate-600 {
+  color: #475569 !important;
+}
+
+html.light .text-slate-700 {
+  color: #0d121d !important;
+}
+
+html.light .text-white,
+html.light [class*="text-white/"],
+html.light [class*="text-white\/"] {
+  color: #0f172a !important;
+}
+
+html.light [class*="text-white/95"], html.light [class*="text-white\/95"] { color: rgba(15, 23, 42, 0.95) !important; }
+html.light [class*="text-white/90"], html.light [class*="text-white\/90"] { color: rgba(15, 23, 42, 0.9) !important; }
+html.light [class*="text-white/85"], html.light [class*="text-white\/85"] { color: rgba(15, 23, 42, 0.85) !important; }
+html.light [class*="text-white/80"], html.light [class*="text-white\/80"] { color: rgba(15, 23, 42, 0.8) !important; }
+html.light [class*="text-white/75"], html.light [class*="text-white\/75"] { color: rgba(15, 23, 42, 0.75) !important; }
+html.light [class*="text-white/70"], html.light [class*="text-white\/70"] { color: rgba(15, 23, 42, 0.7) !important; }
+html.light [class*="text-white/65"], html.light [class*="text-white\/65"] { color: rgba(15, 23, 42, 0.65) !important; }
+html.light [class*="text-white/60"], html.light [class*="text-white\/60"] { color: rgba(15, 23, 42, 0.6) !important; }
+html.light [class*="text-white/55"], html.light [class*="text-white\/55"] { color: rgba(15, 23, 42, 0.55) !important; }
+html.light [class*="text-white/50"], html.light [class*="text-white\/50"] { color: rgba(15, 23, 42, 0.5) !important; }
+html.light [class*="text-white/45"], html.light [class*="text-white\/45"] { color: rgba(15, 23, 42, 0.45) !important; }
+html.light [class*="text-white/40"], html.light [class*="text-white\/40"] { color: rgba(15, 23, 42, 0.38) !important; }
+html.light [class*="text-white/35"], html.light [class*="text-white\/35"] { color: rgba(15, 23, 42, 0.33) !important; }
+html.light [class*="text-white/30"], html.light [class*="text-white\/30"] { color: rgba(15, 23, 42, 0.28) !important; }
+html.light [class*="text-white/25"], html.light [class*="text-white\/25"] { color: rgba(15, 23, 42, 0.24) !important; }
+html.light [class*="text-white/20"], html.light [class*="text-white\/20"] { color: rgba(15, 23, 42, 0.18) !important; }
+html.light [class*="text-white/15"], html.light [class*="text-white\/15"] { color: rgba(15, 23, 42, 0.14) !important; }
+html.light [class*="text-white/10"], html.light [class*="text-white\/10"] { color: rgba(15, 23, 42, 0.09) !important; }
+html.light [class*="text-white/5"], html.light [class*="text-white\/5"] { color: rgba(15, 23, 42, 0.05) !important; }
+
+html.light .text-slate-500\/50 {
+  color: rgba(15, 23, 42, 0.5) !important;
+}
+
+html.light .bg-white\/5 {
+  background-color: rgba(15, 23, 42, 0.04) !important;
+}
+
+html.light .bg-white\/10 {
+  background-color: rgba(15, 23, 42, 0.15) !important;
+}
+
+html.light .hover\:bg-white\/5:hover {
+  background-color: rgba(15, 23, 42, 0.05) !important;
+}
+
+/* Dark Mode contrast improvements */
+:not(.light) .text-slate-700 {
+  color: #64748b !important;
+}
+:not(.light) .text-slate-600 {
+  color: #94a3b8 !important;
+}
+:not(.light) .text-slate-500 {
+  color: #cbd5e1 !important;
+}
+:not(.light) .text-slate-400 {
+  color: #f1f5f9 !important;
+}
+
+/* Range input tracks in light vs dark mode */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px !important;
+  background-color: rgba(255, 255, 255, 0.2) !important;
+  border-radius: 0px !important;
+  outline: none;
+}
+
+html.light input[type="range"] {
+  background-color: rgba(15, 23, 42, 0.25) !important;
+}
+
+/* Webkit-based sliders */
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  background-color: #10b981 !important;
+  cursor: pointer;
+  border-radius: 0px;
+}
+
+/* Mozilla Firefox sliders */
+input[type="range"]::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  background-color: #10b981 !important;
+  cursor: pointer;
+  border-radius: 0px;
+  border: none;
+}
+
+html.light .hud-glass {
+  background-color: rgba(255, 255, 255, 0.8) !important;
+  border-color: #cbd5e1 !important;
+}
+
+/* Form controls and inputs */
+html.light input,
+html.light select,
+html.light textarea {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+}
+
+html.light input:focus,
+html.light select:focus,
+html.light textarea:focus {
+  border-color: #10b981 !important;
+}
+
+/* Canvas inversion for elegant light mode background particles */
+html.light canvas {
+  opacity: 0.15 !important;
+  filter: invert(1);
+}
+
+/* Charts adjustment for Light Mode */
+html.light .recharts-cartesian-grid-horizontal line,
+html.light .recharts-cartesian-grid-vertical line,
+html.light .recharts-cartesian-grid line {
+  stroke: rgba(15, 23, 42, 0.08) !important;
+}
+
+html.light .recharts-text, html.light .recharts-polar-grid-angle line, html.light .recharts-polar-grid-concentric path {
+  fill: #475569 !important;
+  stroke: rgba(15, 23, 42, 0.1) !important;
+}
+
+html.light .recharts-text tspan {
+  fill: #475569 !important;
+}
+
+html.light .recharts-legend-item-text {
+  color: #334155 !important;
+}
+
+html.light .recharts-default-tooltip {
+  background-color: #ffffff !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #0f172a !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+/* Target green tags */
+html.light .text-green-500 {
+  color: #059669 !important;
+}
+
+html.light .text-emerald-500 {
+  color: #059669 !important;
+}
+
+html.light .bg-emerald-500\/10 {
+  background-color: rgba(5, 150, 105, 0.08) !important;
+}
+
+html.light .border-emerald-500\/20 {
+  border-color: rgba(5, 150, 105, 0.2) !important;
+}
+
+html.light .border-emerald-500\/30 {
+  border-color: rgba(5, 150, 105, 0.3) !important;
+}
+
+html.light .border-emerald-500\/50 {
+  border-color: rgba(5, 150, 105, 0.5) !important;
+}
+
+html.light .text-emerald-500\/70 {
+  color: rgba(5, 150, 105, 0.8) !important;
+}
+
+html.light .text-emerald-500\/50 {
+  color: rgba(5, 150, 105, 0.6) !important;
+}
+
+html.light .text-emerald-400 {
+  color: #059669 !important;
+}
+
+html.light .bg-green-500 {
+  background-color: #059669 !important;
+  color: #ffffff !important;
+}
+
+html.light .text-emerald-500 .text-white {
+  color: #0f172a !important;
+}
+
+html.light .text-green-500\/60 {
+  color: rgba(5, 150, 105, 0.7) !important;
+}
+
+html.light .text-green-500\/40 {
+  color: rgba(5, 150, 105, 0.5) !important;
+}
+
+html.light .border-green-500\/30 {
+  border-color: rgba(5, 150, 105, 0.25) !important;
+}
+
+html.light .bg-green-950\/30 {
+  background-color: rgba(5, 150, 105, 0.15) !important;
+}
+
+html.light .selection\:bg-green-500\/30::selection {
+  background-color: rgba(5, 150, 105, 0.25) !important;
+}
+
