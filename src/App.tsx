@@ -111,7 +111,12 @@ export default function App() {
             setView("CHARACTER_SELECT");
           }
         } catch (err) {
-          handleFirestoreError(err, OperationType.GET, profilePath);
+          try {
+            handleFirestoreError(err, OperationType.GET, profilePath);
+          } catch (e) {
+            console.error("Non-blocking profile fetch error:", e);
+          }
+          setView("CHARACTER_SELECT");
         }
       } else {
         setView("LANDING");

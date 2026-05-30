@@ -36,13 +36,6 @@ service cloud.firestore {
       return data.keys().hasAll(requiredFields)
         && data.userId == request.auth.uid
         && data.name is string && data.name.size() > 0 && data.name.size() <= 100
-        && isNumeric(data.get('age', 25))
-        && isNumeric(data.get('salary', 0))
-        && isNumeric(data.get('bankBalance', 0))
-        && isNumeric(data.get('monthlySavings', 0))
-        && (data.get('assets', []) is list)
-        && (data.get('loans', []) is list)
-        && (data.get('goals', []) is list)
         && (data.get('updatedAt', request.time) == request.time);
     }
 

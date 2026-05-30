@@ -76,7 +76,7 @@ export default function TimelineView({ profile, scenario }: { profile: UserProfi
       <div className="pt-16 border-t border-white/5">
         <label className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.4em] font-mono mb-8 block px-1">Objective Synchronization</label>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {profile.goals.map((goalId) => (
+          {(profile.goals || []).map((goalId) => (
             <GoalWindowCard key={goalId} goalId={goalId} scenario={scenario} />
           ))}
         </div>
