@@ -153,7 +153,11 @@ export default function App() {
           await setDoc(docRef, createPayload);
         }
       } catch (error) {
-        handleFirestoreError(error, OperationType.WRITE, path);
+        try {
+          handleFirestoreError(error, OperationType.WRITE, path);
+        } catch (ignoredError) {
+          console.error("Non-blocking profile save error during onboarding:", ignoredError);
+        }
       }
     }
 

@@ -211,7 +211,7 @@ export default function LandingPage({
       {/* 🧭 Header Navigation */}
       <nav className="site-header w-full border-b border-white/5 bg-black/80 backdrop-blur-md fixed top-0 left-0 right-0 z-50 px-6 py-4 flex items-center justify-between">
         <div className="logo flex items-center gap-2 font-mono text-sm tracking-widest font-bold text-white uppercase">
-          <span className="text-emerald-500 font-bold">ARSH</span>MIND
+          <span className="text-emerald-500 font-bold">Arsh</span>Mind
           <span className="text-[9px] font-normal text-slate-500 font-mono tracking-widest lowercase bg-white/5 px-2 py-0.5 border border-white/5">// v2.0_FUTURE_OS</span>
         </div>
         
@@ -834,10 +834,10 @@ export default function LandingPage({
       <footer className="w-full border-t border-white/5 py-12 bg-black/40 text-slate-500 font-mono text-[9px] uppercase tracking-widest select-none">
         <div className="max-w-7xl mx-auto px-6 sm:px-12 flex flex-col sm:flex-row items-center justify-between gap-6">
           <div className="logo flex items-center gap-1.5 font-mono text-[10px] tracking-widest font-bold text-slate-400">
-            <span className="text-teal-500">ARSH</span>MIND <span className="text-slate-600 hover:text-slate-400">// FUTURE_OS</span>
+            <span className="text-teal-500">Arsh</span>Mind <span className="text-slate-600 hover:text-slate-400">// FUTURE_OS</span>
           </div>
           
-          <p className="text-[8px] text-slate-600 text-center sm:text-left">© 2026 ARSHMIND · ALL FUTURES SIMULATED</p>
+          <p className="text-[8px] text-slate-600 text-center sm:text-left">© 2026 ArshMind · ALL FUTURES SIMULATED</p>
           
           <div className="flex gap-6">
             <a href="#hero" className="hover:text-emerald-500 transition-colors">PRIVACY</a>

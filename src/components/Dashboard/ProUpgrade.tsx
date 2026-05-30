@@ -141,7 +141,7 @@ export default function ProUpgrade({
               <div className="w-full h-44 bg-gradient-to-br from-amber-500/20 via-[#0F1115] to-black border border-white/10 p-6 flex flex-col justify-between relative overflow-hidden group">
                 <div className="absolute top-0 right-0 w-20 h-20 bg-amber-500/5 rounded-full blur-2xl group-hover:scale-150 transition-all duration-700" />
                 <div className="flex justify-between items-start">
-                  <div className="text-xs uppercase font-mono font-bold text-white tracking-[0.2em]">ARSHMIND // PRO</div>
+                  <div className="text-xs uppercase font-mono font-bold text-white tracking-[0.2em]">ArshMind // PRO</div>
                   <Sparkles className="w-4 h-4 text-amber-500 animate-pulse" />
                 </div>
                 
