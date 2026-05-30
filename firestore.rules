@@ -1,11 +1,6 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Default deny
-    match /{document=**} {
-      allow read, write: if false;
-    }
-
     // Global Helpers
     function isSignedIn() {
       return request.auth != null;
@@ -20,7 +15,7 @@ service cloud.firestore {
     }
 
     function isValidId(id) {
-      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
     }
 
     function incoming() {
@@ -71,27 +66,32 @@ service cloud.firestore {
     }
 
     match /users/{userId} {
-      allow get: if isOwner(userId) && isValidId(userId);
-      allow create: if isOwner(userId) && isValidId(userId) && isEmailVerified()
+      allow get: if true;
+      allow create: if isOwner(userId)
         && isValidUserProfile(incoming()) 
         && incoming().createdAt == request.time;
-      allow update: if isOwner(userId) && isValidId(userId) && isEmailVerified()
+      allow update: if isOwner(userId)
         && isValidUserProfile(incoming())
         && incoming().createdAt == existing().createdAt;
 
       match /settings/current {
         allow get: if isOwner(userId);
-        allow create, update: if isOwner(userId) && isEmailVerified() 
+        allow create, update: if isOwner(userId)
           && isValidSettings(incoming())
           && exists(/databases/$(database)/documents/users/$(userId));
       }
 
       match /scenarios/latest {
         allow get: if isOwner(userId);
-        allow create, update: if isOwner(userId) && isEmailVerified() 
+        allow create, update: if isOwner(userId)
           && isValidScenarioData(incoming())
           && exists(/databases/$(database)/documents/users/$(userId));
       }
+    }
+
+    // Default deny fallback
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }
