@@ -50,7 +50,7 @@ export default function App() {
       try {
         await getDocFromServer(doc(db, 'test', 'connection'));
       } catch (error) {
-        if(error instanceof Error && error.message.includes('the client is offline')) {
+        if (error instanceof Error && error.message.includes('the client is offline')) {
           console.error("Please check your Firebase configuration.");
         }
       }
@@ -69,7 +69,7 @@ export default function App() {
           if (docSnap.exists()) {
             const data = docSnap.data() as UserProfile;
             setProfile(data);
-            
+
             // Load settings
             const settingsPath = `users/${uId}/settings/current`;
             try {
@@ -96,14 +96,14 @@ export default function App() {
             } catch (err) {
               handleFirestoreError(err, OperationType.GET, scenariosPath);
             }
-            
+
             if (loadedScenarios.length > 0) {
               setView("DASHBOARD");
             } else if (data.name) {
-              // Profile exists but no scenarios - trigger analysis
-              handleFinishWizard(data as UserProfile);
+              // Profile exists but no scenarios - go to dashboard with empty state,
+              // do NOT silently regenerate. Let user trigger it manually if needed.
+              setView("DASHBOARD");
             } else {
-              // New user (no name yet)
               setView("CHARACTER_SELECT");
             }
           } else {
@@ -129,18 +129,19 @@ export default function App() {
   const handleFinishWizard = async (finalProfile: UserProfile) => {
     setProfile(finalProfile);
     setView("ANALYSIS");
-    
+
     // Save to Firestore
-    if (user) {
-      const path = `users/${user.uid}`;
+    const currentUser = user || auth.currentUser;
+    if (currentUser) {
+      const path = `users/${currentUser.uid}`;
       try {
         // Ensure userId is in the profile
-        const profileWithAuth = { ...finalProfile, userId: user.uid };
+        const profileWithAuth = { ...finalProfile, userId: currentUser.uid };
         setProfile(profileWithAuth);
 
-        const docRef = doc(db, "users", user.uid);
+        const docRef = doc(db, "users", currentUser.uid);
         const docSnap = await getDoc(docRef);
-        
+
         if (docSnap.exists()) {
           const existingData = docSnap.data();
           const updatePayload = {
@@ -166,103 +167,102 @@ export default function App() {
       }
     }
 
-      // Call AI Analyze
-      try {
-        const response = await fetch("/api/analyze", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ profile: finalProfile }),
-        });
-        
-        if (!response.ok) {
-          throw new Error(`Analysis failed with status: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        if (data.error) {
-          throw new Error(data.error);
-        }
+    // Call AI Analyze
+    try {
+      const response = await fetch("/api/analyze", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ profile: finalProfile }),
+      });
 
-        const news: Scenario[] = data.scenarios && data.scenarios.length > 0 ? data.scenarios : [
-          {
-            id: "fallback-safe",
-            title: "Standard Trajectory",
-            subtitle: "Balanced growth path",
-            risk: "Low",
-            viability: 85,
-            description: "A calculated path focusing on steady accumulation and skill consolidation.",
-            yearlyModifiers: [
-              { year: 1, salaryMult: 1, savingsMult: 1, notes: "Base consolidation" },
-              { year: 3, salaryMult: 1.3, savingsMult: 1.2, notes: "Experience premium" }
-            ],
-            stats: { 
-              fiveYearSalary: (finalProfile.salary || 0) * 1.5, 
-              fiveYearSavings: (finalProfile.monthlySavings || 0) * 12 * 5, 
-              confidence: "High" 
-            },
-            riskFactors: ["Market stagnation", "Inflation"],
-            winningMoves: ["Optimize tax savings", "Build emergency fund"],
-            milestones: [
-              { year: 3, type: "career", content: "Senior Role attained" },
-              { year: 3, type: "lifestyle", content: "Financial buffer secured" },
-              { year: 5, type: "career", content: "Strategic Lead" },
-              { year: 5, type: "lifestyle", content: "Asset accumulation begins" }
-            ]
-          }
-        ];
-
-        setScenarios(news);
-        setSettings(prev => ({ ...prev, activeScenarioId: news[0].id, savingsRate: finalProfile.monthlySavings }));
-        
-        // Save scenarios to Firestore
-        if (user) {
-          const scPath = `users/${user.uid}/scenarios/latest`;
-          try {
-            await setDoc(doc(db, "users", user.uid, "scenarios", "latest"), {
-              scenarios: news,
-              updatedAt: serverTimestamp(),
-            });
-            console.log("Scenarios saved to Firestore successfully.");
-          } catch (err) {
-            console.error("Failed to save scenarios to Firestore:", err);
-            handleFirestoreError(err, OperationType.WRITE, scPath);
-          }
-        }
-        
-        // Final transition
-        setView("DASHBOARD");
-      } catch (error) {
-        console.error("Analysis failed:", error);
-        // Fallback scenarios on hard error
-        const fallback: Scenario[] = [
-          {
-            id: "error-fallback",
-            title: "Safe Harbor Vector",
-            subtitle: "Resilience Strategy",
-            risk: "Low",
-            viability: 95,
-            description: "Emergency fallback strategy while systems recalibrate. Focusing on liquidity and capital preservation.",
-            yearlyModifiers: [
-              { year: 1, salaryMult: 1, savingsMult: 1, notes: "Risk containment" }
-            ],
-            stats: { 
-              fiveYearSalary: (finalProfile.salary || 0) * 1.2, 
-              fiveYearSavings: (finalProfile.monthlySavings || 0) * 12 * 5, 
-              confidence: "Very High" 
-            },
-            riskFactors: ["External API latency", "Temporary signal loss"],
-            winningMoves: ["Diversify across debt instruments", "Upskill in core domains"],
-            milestones: [
-              { year: 3, type: "career", content: "Core stability" },
-              { year: 3, type: "lifestyle", content: "Minimal leverage" }
-            ]
-          }
-        ];
-        setScenarios(fallback);
-        setSettings(prev => ({ ...prev, activeScenarioId: fallback[0].id, savingsRate: finalProfile.monthlySavings }));
-        setView("DASHBOARD");
+      if (!response.ok) {
+        throw new Error(`Analysis failed with status: ${response.status}`);
       }
-    };
+
+      const data = await response.json();
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
+      const news: Scenario[] = data.scenarios && data.scenarios.length > 0 ? data.scenarios : [
+        {
+          id: "fallback-safe",
+          title: "Standard Trajectory",
+          subtitle: "Balanced growth path",
+          risk: "Low",
+          viability: 85,
+          description: "A calculated path focusing on steady accumulation and skill consolidation.",
+          yearlyModifiers: [
+            { year: 1, salaryMult: 1, savingsMult: 1, notes: "Base consolidation" },
+            { year: 3, salaryMult: 1.3, savingsMult: 1.2, notes: "Experience premium" }
+          ],
+          stats: {
+            fiveYearSalary: (finalProfile.salary || 0) * 1.5,
+            fiveYearSavings: (finalProfile.monthlySavings || 0) * 12 * 5,
+            confidence: "High"
+          },
+          riskFactors: ["Market stagnation", "Inflation"],
+          winningMoves: ["Optimize tax savings", "Build emergency fund"],
+          milestones: [
+            { year: 3, type: "career", content: "Senior Role attained" },
+            { year: 3, type: "lifestyle", content: "Financial buffer secured" },
+            { year: 5, type: "career", content: "Strategic Lead" },
+            { year: 5, type: "lifestyle", content: "Asset accumulation begins" }
+          ]
+        }
+      ];
+
+      setScenarios(news);
+      setSettings(prev => ({ ...prev, activeScenarioId: news[0].id, savingsRate: finalProfile.monthlySavings }));
+
+      // Save scenarios to Firestore
+      const currentUser = user || auth.currentUser; // ← use live auth state as fallback
+      if (currentUser) {
+        const scPath = `users/${currentUser.uid}/scenarios/latest`;
+        try {
+          await setDoc(doc(db, "users", currentUser.uid, "scenarios", "latest"), {
+            scenarios: news,
+            updatedAt: serverTimestamp(),
+          });
+        } catch (err) {
+          handleFirestoreError(err, OperationType.WRITE, scPath);
+        }
+      }
+
+      // Final transition
+      setView("DASHBOARD");
+    } catch (error) {
+      console.error("Analysis failed:", error);
+      // Fallback scenarios on hard error
+      const fallback: Scenario[] = [
+        {
+          id: "error-fallback",
+          title: "Safe Harbor Vector",
+          subtitle: "Resilience Strategy",
+          risk: "Low",
+          viability: 95,
+          description: "Emergency fallback strategy while systems recalibrate. Focusing on liquidity and capital preservation.",
+          yearlyModifiers: [
+            { year: 1, salaryMult: 1, savingsMult: 1, notes: "Risk containment" }
+          ],
+          stats: {
+            fiveYearSalary: (finalProfile.salary || 0) * 1.2,
+            fiveYearSavings: (finalProfile.monthlySavings || 0) * 12 * 5,
+            confidence: "Very High"
+          },
+          riskFactors: ["External API latency", "Temporary signal loss"],
+          winningMoves: ["Diversify across debt instruments", "Upskill in core domains"],
+          milestones: [
+            { year: 3, type: "career", content: "Core stability" },
+            { year: 3, type: "lifestyle", content: "Minimal leverage" }
+          ]
+        }
+      ];
+      setScenarios(fallback);
+      setSettings(prev => ({ ...prev, activeScenarioId: fallback[0].id, savingsRate: finalProfile.monthlySavings }));
+      setView("DASHBOARD");
+    }
+  };
 
   const handleUpdateSettings = async (newSettings: ScenarioSettings) => {
     setSettings(newSettings);
@@ -332,8 +332,8 @@ export default function App() {
       <div className="fixed inset-0 pointer-events-none z-10 opacity-[0.02] bg-[url('https://grainy-gradients.vercel.app/noise.svg')]"></div>
 
       {view !== "DASHBOARD" && view !== "LANDING" && (
-        <button 
-          onClick={() => setTheme(prev => prev === "dark" ? "light" : "dark")} 
+        <button
+          onClick={() => setTheme(prev => prev === "dark" ? "light" : "dark")}
           className="fixed top-6 right-6 z-[100] p-3 border-geom border border-white/5 hover:border-emerald-500/50 hover:bg-emerald-500/10 text-slate-400 hover:text-emerald-500 transition-colors bg-white/5 backdrop-blur-md"
           title={`Switch to ${theme === "dark" ? "Light" : "Dark"} Mode`}
         >
@@ -344,8 +344,8 @@ export default function App() {
       <AnimatePresence mode="wait">
         {view === "LANDING" && (
           <motion.div key="landing" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            <LandingPage 
-              onStart={() => setView("BOOT")} 
+            <LandingPage
+              onStart={() => setView("BOOT")}
               theme={theme}
               onToggleTheme={() => setTheme(prev => prev === "dark" ? "light" : "dark")}
             />
@@ -354,7 +354,27 @@ export default function App() {
 
         {view === "BOOT" && (
           <motion.div key="boot" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            <BootScreen onComplete={() => setView(user ? "DASHBOARD" : "CHARACTER_SELECT")} />
+            <BootScreen onComplete={async () => {
+              if (user) {
+                // Re-fetch their saved data before navigating
+                const docRef = doc(db, "users", user.uid);
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists()) {
+                  setProfile(docSnap.data() as UserProfile);
+                }
+                const scenariosSnap = await getDoc(doc(db, "users", user.uid, "scenarios", "latest"));
+                if (scenariosSnap.exists()) {
+                  const saved = scenariosSnap.data().scenarios || [];
+                  setScenarios(saved);
+                  if (saved.length > 0) {
+                    setSettings(prev => ({ ...prev, activeScenarioId: saved[0].id }));
+                  }
+                }
+                setView("DASHBOARD");
+              } else {
+                setView("CHARACTER_SELECT");
+              }
+            }} />
           </motion.div>
         )}
 
@@ -369,9 +389,9 @@ export default function App() {
 
         {view === "WIZARD" && (
           <motion.div key="wizard" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            <Wizard 
-              initialProfile={profile} 
-              onComplete={handleFinishWizard} 
+            <Wizard
+              initialProfile={profile}
+              onComplete={handleFinishWizard}
               onBack={() => setView("CHARACTER_SELECT")}
             />
           </motion.div>
@@ -385,9 +405,9 @@ export default function App() {
 
         {view === "DASHBOARD" && (
           <motion.div key="dashboard" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-            <Dashboard 
-              profile={profile as UserProfile} 
-              scenarios={scenarios} 
+            <Dashboard
+              profile={profile as UserProfile}
+              scenarios={scenarios}
               settings={settings}
               onUpdateSettings={handleUpdateSettings}
               onUpdateProfile={handleUpdateProfile}
