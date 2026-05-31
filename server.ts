@@ -8,6 +8,7 @@ dotenv.config();
 
 const ai = process.env.GEMINI_API_KEY ? new GoogleGenAI({
   apiKey: process.env.GEMINI_API_KEY,
+  baseUrl: "https://gateway.ai.cloudflare.com/v1/public/gemini",
   httpOptions: {
     headers: {
       'User-Agent': 'aistudio-build',
@@ -23,28 +24,28 @@ const MAX_ANALYZES_PER_WINDOW = 3;  // Maximum of 3 AI analyses per minute per I
 function analyzeRateLimiter(req: express.Request, res: express.Response, next: express.NextFunction) {
   const ip = req.ip || (req.headers["x-forwarded-for"] as string) || "unknown_ip";
   const now = Date.now();
-  
+
   const clientData = clients.get(ip) || { count: 0, lastReset: now };
-  
+
   if (now - clientData.lastReset > RATE_LIMIT_WINDOW_MS) {
     clientData.count = 1;
     clientData.lastReset = now;
   } else {
     clientData.count += 1;
   }
-  
+
   clients.set(ip, clientData);
-  
+
   // Set rate limit headers
   res.setHeader("X-RateLimit-Limit", MAX_ANALYZES_PER_WINDOW);
   res.setHeader("X-RateLimit-Remaining", Math.max(0, MAX_ANALYZES_PER_WINDOW - clientData.count));
-  
+
   if (clientData.count > MAX_ANALYZES_PER_WINDOW) {
-    return res.status(429).json({ 
-      error: "Rate limit exceeded. System calibrated to prevent quota exhaustion. Please wait 60 seconds before building another path." 
+    return res.status(429).json({
+      error: "Rate limit exceeded. System calibrated to prevent quota exhaustion. Please wait 60 seconds before building another path."
     });
   }
-  
+
   next();
 }
 
@@ -105,7 +106,7 @@ async function startServer() {
                     risk: { type: Type.STRING },
                     viability: { type: Type.NUMBER },
                     description: { type: Type.STRING },
-                    yearlyModifiers: { 
+                    yearlyModifiers: {
                       type: Type.ARRAY,
                       items: {
                         type: Type.OBJECT,
@@ -118,7 +119,7 @@ async function startServer() {
                         required: ["year", "salaryMult", "savingsMult", "notes"]
                       }
                     },
-                    stats: { 
+                    stats: {
                       type: Type.OBJECT,
                       properties: {
                         fiveYearSalary: { type: Type.NUMBER },
@@ -129,9 +130,9 @@ async function startServer() {
                     },
                     riskFactors: { type: Type.ARRAY, items: { type: Type.STRING } },
                     winningMoves: { type: Type.ARRAY, items: { type: Type.STRING } },
-                    milestones: { 
-                      type: Type.ARRAY, 
-                      items: { 
+                    milestones: {
+                      type: Type.ARRAY,
+                      items: {
                         type: Type.OBJECT,
                         properties: {
                           year: { type: Type.NUMBER },
@@ -139,7 +140,7 @@ async function startServer() {
                           content: { type: Type.STRING }
                         },
                         required: ["year", "type", "content"]
-                      } 
+                      }
                     }
                   },
                   required: ["id", "title", "subtitle", "risk", "viability", "description", "stats", "milestones"]
@@ -150,7 +151,7 @@ async function startServer() {
           }
         }
       });
-      
+
       const text = response.text;
       if (!text) {
         console.error("AI returned empty text");
@@ -203,7 +204,7 @@ async function startServer() {
               risk: { type: Type.STRING },
               viability: { type: Type.NUMBER },
               description: { type: Type.STRING },
-              yearlyModifiers: { 
+              yearlyModifiers: {
                 type: Type.ARRAY,
                 items: {
                   type: Type.OBJECT,
@@ -216,7 +217,7 @@ async function startServer() {
                   required: ["year", "salaryMult", "savingsMult", "notes"]
                 }
               },
-              stats: { 
+              stats: {
                 type: Type.OBJECT,
                 properties: {
                   fiveYearSalary: { type: Type.NUMBER },
@@ -227,9 +228,9 @@ async function startServer() {
               },
               riskFactors: { type: Type.ARRAY, items: { type: Type.STRING } },
               winningMoves: { type: Type.ARRAY, items: { type: Type.STRING } },
-              milestones: { 
-                type: Type.ARRAY, 
-                items: { 
+              milestones: {
+                type: Type.ARRAY,
+                items: {
                   type: Type.OBJECT,
                   properties: {
                     year: { type: Type.NUMBER },
@@ -237,7 +238,7 @@ async function startServer() {
                     content: { type: Type.STRING }
                   },
                   required: ["year", "type", "content"]
-                } 
+                }
               }
             },
             required: ["id", "title", "subtitle", "risk", "viability", "description", "stats", "milestones", "yearlyModifiers", "riskFactors", "winningMoves"]
