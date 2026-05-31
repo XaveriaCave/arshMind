@@ -8,7 +8,6 @@ dotenv.config();
 
 const ai = process.env.GEMINI_API_KEY ? new GoogleGenAI({
   apiKey: process.env.GEMINI_API_KEY,
-  baseUrl: "https://gateway.ai.cloudflare.com/v1/public/gemini",
   httpOptions: {
     headers: {
       'User-Agent': 'aistudio-build',
