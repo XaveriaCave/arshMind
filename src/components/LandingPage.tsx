@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { 
-  Sun, Moon, Users, Compass, Zap, Shield, HelpCircle, 
-  ArrowRight, Award, Flame, Calendar, BookOpen, ChevronRight, 
+import {
+  Sun, Moon, Users, Compass, Zap, Shield, HelpCircle,
+  ArrowRight, Award, Flame, Calendar, BookOpen, ChevronRight,
   Layers, MessageSquare, Play, X, Star, BarChart3, TrendingUp
 } from "lucide-react";
 
@@ -31,7 +31,7 @@ export default function LandingPage({
   const [joinedWaitlist, setJoinedWaitlist] = useState(false);
   const [waitlistName, setWaitlistName] = useState("");
   const [waitlistEmail, setWaitlistEmail] = useState("");
-  
+
   // States for Hero Waitlist Email
   const [heroEmail, setHeroEmail] = useState("");
   const [heroJoined, setHeroJoined] = useState(false);
@@ -207,14 +207,14 @@ export default function LandingPage({
 
   return (
     <div className="relative min-h-screen text-slate-300 bg-[#0A0A0B] overflow-x-hidden selection:bg-emerald-500/30">
-      
+
       {/* 🧭 Header Navigation */}
       <nav className="site-header w-full border-b border-white/5 bg-black/80 backdrop-blur-md fixed top-0 left-0 right-0 z-50 px-6 py-4 flex items-center justify-between">
         <div className="logo flex items-center gap-2 font-mono text-sm tracking-widest font-bold text-white uppercase">
           <span className="text-emerald-500 font-bold">Arsh</span>Mind
           <span className="text-[9px] font-normal text-slate-500 font-mono tracking-widest lowercase bg-white/5 px-2 py-0.5 border border-white/5">// v2.0_FUTURE_OS</span>
         </div>
-        
+
         <ul className="hidden md:flex items-center gap-8 font-mono text-[10px] uppercase tracking-widest text-slate-400">
           <li>
             <a href="#explorer" className="hover:text-emerald-500 transition-colors">EXPLORE SCENARIOS</a>
@@ -231,15 +231,15 @@ export default function LandingPage({
         </ul>
 
         <div className="flex items-center gap-4">
-          <button 
-            onClick={onToggleTheme} 
+          <button
+            onClick={onToggleTheme}
             className="p-2 border border-white/5 hover:border-emerald-500/50 hover:bg-emerald-500/10 text-slate-400 hover:text-emerald-500 transition-colors"
             title={`Switch to ${theme === "dark" ? "Light" : "Dark"} Mode`}
           >
             {theme === "dark" ? <Sun size={14} /> : <Moon size={14} />}
           </button>
-          
-          <button 
+
+          <button
             onClick={onStart}
             className="px-5 py-2 border-geom border border-emerald-500/30 hover:border-emerald-500 bg-emerald-500/5 hover:bg-emerald-500/10 text-emerald-500 font-mono text-[10px] uppercase tracking-widest transition-all duration-300 hover:shadow-[0_0_15px_rgba(16,185,129,0.15)]"
           >
@@ -248,11 +248,11 @@ export default function LandingPage({
         </div>
       </nav>
 
-      <div className="max-w-7xl mx-auto px-6 sm:px-12">
-        
+      <div className="max-w-7xl mx-auto px-6 sm:px-12 arshmind-top">
+
         {/* 🔥 Hero Section */}
         <section id="hero" className="pt-20 pb-24 md:pt-28 md:pb-32 flex flex-col items-center text-center relative z-10">
-          
+
           {/* Badge */}
           <div className="inline-flex items-center px-4 py-1 border border-emerald-500/20 bg-emerald-500/5 text-emerald-500 font-mono text-[9px] uppercase tracking-widest mb-8">
             <span className="inline-block w-1.5 h-1.5 bg-emerald-500 animate-ping rounded-full mr-2" />
@@ -280,8 +280,8 @@ export default function LandingPage({
               <span className="text-emerald-500 font-bold">{clarityScore}%</span>
             </div>
             <div className="w-full h-1 bg-white/5 relative overflow-hidden">
-              <div 
-                className="h-full bg-emerald-500 transition-all duration-500 ease-out shadow-[0_0_12px_rgba(5,150,105,0.4)]" 
+              <div
+                className="h-full bg-emerald-500 transition-all duration-500 ease-out shadow-[0_0_12px_rgba(5,150,105,0.4)]"
                 style={{ width: `${clarityScore}%` }}
               />
             </div>
@@ -291,15 +291,15 @@ export default function LandingPage({
           <div className="w-full max-w-md">
             {!heroJoined ? (
               <form onSubmit={handleHeroSubmit} className="flex flex-col sm:flex-row gap-3">
-                <input 
-                  type="email" 
+                <input
+                  type="email"
                   value={heroEmail}
                   onChange={(e) => setHeroEmail(e.target.value)}
                   className="flex-1 bg-white/5 border border-white/5 hover:border-white/10 focus:border-emerald-500/50 p-4 text-xs font-mono text-center sm:text-left text-white placeholder:text-slate-600 focus:outline-none transition-all"
-                  placeholder="ENTER_YOUR_EMAIL" 
+                  placeholder="ENTER_YOUR_EMAIL"
                   required
                 />
-                <button 
+                <button
                   type="submit"
                   className="px-6 py-4 bg-emerald-500 hover:bg-emerald-600 text-black font-mono font-bold text-[10px] uppercase tracking-widest transition-all duration-300 hover:shadow-[0_0_20px_rgba(16,185,129,0.3)] shrink-0"
                 >
@@ -367,7 +367,7 @@ export default function LandingPage({
             {/* Sidebar selector */}
             <div className="lg:col-span-5 space-y-3">
               <div className="text-[10px] uppercase font-mono text-slate-500 tracking-widest pl-1 mb-2">// Select Path Target</div>
-              
+
               {[
                 { id: "a", label: "PATH_01", title: "UPSKILL + CAREER SWITCH", risk: "MEDIUM", riskColor: "text-amber-500 bg-amber-500/5" },
                 { id: "b", label: "PATH_02", title: "STAY CURRENT ROLE", risk: "LOW", riskColor: "text-emerald-500 bg-emerald-500/5" },
@@ -375,14 +375,13 @@ export default function LandingPage({
                 { id: "d", label: "PATH_04", title: "RELOCATE / NEW MARKET", risk: "MEDIUM", riskColor: "text-amber-500 bg-amber-500/5" },
                 { id: "e", label: "PATH_05", title: "BUILD PASSIVE INCOME", risk: "MEDIUM", riskColor: "text-amber-500 bg-amber-500/5" },
               ].map((sc) => (
-                <button 
+                <button
                   key={sc.id}
                   onClick={() => setActiveScenario(sc.id as any)}
-                  className={`w-full text-left p-5 border transition-all duration-300 flex items-center justify-between ${
-                    activeScenario === sc.id 
-                    ? "bg-white/5 border-emerald-500/30 shadow-[inset_3px_0_0_0_#10b981]" 
-                    : "bg-[#0F1115] border-white/5 hover:border-white/10"
-                  }`}
+                  className={`w-full text-left p-5 border transition-all duration-300 flex items-center justify-between ${activeScenario === sc.id
+                      ? "bg-white/5 border-emerald-500/30 shadow-[inset_3px_0_0_0_#10b981]"
+                      : "bg-[#0F1115] border-white/5 hover:border-white/10"
+                    }`}
                 >
                   <div>
                     <div className="text-[9px] font-mono text-slate-500 uppercase tracking-widest">{sc.label}</div>
@@ -403,7 +402,7 @@ export default function LandingPage({
                 {activeScenario === "a" && (
                   <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
                     <h3 className="text-sm font-mono font-bold text-emerald-500 uppercase tracking-widest">PATH_01 · UPSKILL AND SWITCH CAREERS</h3>
-                    
+
                     <div className="space-y-4 font-sans text-xs">
                       <div className="border-l-2 border-slate-800 pl-4 py-1">
                         <div className="font-mono text-[9px] text-slate-500 uppercase tracking-widest">MONTHS 1-12</div>
@@ -439,7 +438,7 @@ export default function LandingPage({
                 {activeScenario === "b" && (
                   <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
                     <h3 className="text-sm font-mono font-bold text-emerald-500 uppercase tracking-widest">PATH_02 · STAY CURRENT ROLE, OPTIMIZE WITHIN</h3>
-                    
+
                     <div className="space-y-4 font-sans text-xs">
                       <div className="border-l-2 border-slate-800 pl-4 py-1">
                         <div className="font-mono text-[9px] text-slate-500 uppercase tracking-widest">MONTHS 1-12</div>
@@ -475,7 +474,7 @@ export default function LandingPage({
                 {activeScenario === "c" && (
                   <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
                     <h3 className="text-sm font-mono font-bold text-emerald-500 uppercase tracking-widest">PATH_03 · LAUNCH YOUR OWN VENTURE</h3>
-                    
+
                     <div className="space-y-4 font-sans text-xs">
                       <div className="border-l-2 border-slate-800 pl-4 py-1">
                         <div className="font-mono text-[9px] text-slate-500 uppercase tracking-widest">MONTHS 1-18</div>
@@ -511,7 +510,7 @@ export default function LandingPage({
                 {activeScenario === "d" && (
                   <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
                     <h3 className="text-sm font-mono font-bold text-emerald-500 uppercase tracking-widest">PATH_04 · RELOCATE TO A NEW MARKET</h3>
-                    
+
                     <div className="space-y-4 font-sans text-xs">
                       <div className="border-l-2 border-slate-800 pl-4 py-1">
                         <div className="font-mono text-[9px] text-slate-500 uppercase tracking-widest">MONTHS 1-6</div>
@@ -547,7 +546,7 @@ export default function LandingPage({
                 {activeScenario === "e" && (
                   <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
                     <h3 className="text-sm font-mono font-bold text-emerald-500 uppercase tracking-widest">PATH_05 · BUILD PASSIVE INCOME STREAMS</h3>
-                    
+
                     <div className="space-y-4 font-sans text-xs">
                       <div className="border-l-2 border-slate-800 pl-4 py-1">
                         <div className="font-mono text-[9px] text-slate-500 uppercase tracking-widest">YEAR 1 · DISCIPLINE</div>
@@ -607,7 +606,7 @@ export default function LandingPage({
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {decisions.map((dec) => (
-              <div 
+              <div
                 key={dec.id}
                 onClick={() => setSelectedDecision(dec)}
                 className="cursor-pointer bg-[#0F1115] border border-white/5 hover:border-emerald-500/30 p-8 transition-all duration-300 group relative flex flex-col justify-between"
@@ -733,10 +732,10 @@ export default function LandingPage({
         {/* ✉️ Waitlist Form Section */}
         <section id="waitlist" className="py-24">
           <div className="bg-[#0F1115] border border-white/5 p-10 sm:p-16 text-center max-w-4xl mx-auto relative overflow-hidden">
-            
+
             <AnimatePresence mode="wait">
               {!joinedWaitlist ? (
-                <motion.div 
+                <motion.div
                   key="form"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
@@ -744,7 +743,7 @@ export default function LandingPage({
                   className="space-y-8"
                 >
                   <span className="text-[9px] font-mono text-emerald-500 uppercase tracking-widest bg-emerald-500/5 px-3 py-1 border border-emerald-500/10">MISSION_ENLIST</span>
-                  
+
                   <h2 className="text-4xl sm:text-5xl font-sans font-bold tracking-tight text-white leading-none uppercase">
                     Your future is<br />
                     <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-500 to-teal-400 font-sans italic lowercase">
@@ -780,24 +779,24 @@ export default function LandingPage({
                   {/* Form fields */}
                   <form onSubmit={handleWaitlistSubmit} className="max-w-md mx-auto space-y-3">
                     <div className="flex flex-col sm:flex-row gap-3">
-                      <input 
-                        type="text" 
+                      <input
+                        type="text"
                         value={waitlistName}
                         onChange={(e) => setWaitlistName(e.target.value)}
-                        placeholder="YOUR_NAME" 
+                        placeholder="YOUR_NAME"
                         className="bg-white/5 border border-white/5 hover:border-white/10 focus:border-emerald-500/50 p-4 text-xs font-mono text-center sm:text-left text-white placeholder:text-slate-600 focus:outline-none transition-all flex-1"
                         required
                       />
-                      <input 
-                        type="email" 
+                      <input
+                        type="email"
                         value={waitlistEmail}
                         onChange={(e) => setWaitlistEmail(e.target.value)}
-                        placeholder="YOUR_EMAIL" 
+                        placeholder="YOUR_EMAIL"
                         className="bg-white/5 border border-white/5 hover:border-white/10 focus:border-emerald-500/50 p-4 text-xs font-mono text-center sm:text-left text-white placeholder:text-slate-600 focus:outline-none transition-all flex-1"
                         required
                       />
                     </div>
-                    <button 
+                    <button
                       type="submit"
                       className="w-full py-4 bg-emerald-500 hover:bg-emerald-600 text-black font-mono font-bold text-[10px] uppercase tracking-widest transition-all duration-300 hover:shadow-[0_0_20px_rgba(16,185,129,0.3)]"
                     >
@@ -807,7 +806,7 @@ export default function LandingPage({
                   </form>
                 </motion.div>
               ) : (
-                <motion.div 
+                <motion.div
                   key="success"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
@@ -816,7 +815,7 @@ export default function LandingPage({
                   <div className="text-md font-mono text-emerald-500 tracking-widest uppercase">// ACCESS_GRANTED_CONFIRMED</div>
                   <h3 className="text-3xl font-sans font-bold text-white uppercase tracking-tight">YOU ARE ENLISTED ✅</h3>
                   <p className="text-xs text-slate-300 max-w-lg mx-auto leading-relaxed">System queue slot locked. We'll transmit beta parameters straight to your endpoint ({waitlistEmail}). Get ready to explore alternative matrices, operative.</p>
-                  <button 
+                  <button
                     onClick={onStart}
                     className="mt-6 px-10 py-4 bg-emerald-500 hover:bg-emerald-600 text-black font-mono font-bold text-[10px] uppercase tracking-widest transition-all"
                   >
@@ -836,9 +835,9 @@ export default function LandingPage({
           <div className="logo flex items-center gap-1.5 font-mono text-[10px] tracking-widest font-bold text-slate-400">
             <span className="text-teal-500">Arsh</span>Mind <span className="text-slate-600 hover:text-slate-400">// FUTURE_OS</span>
           </div>
-          
+
           <p className="text-[8px] text-slate-600 text-center sm:text-left">© 2026 ArshMind · ALL FUTURES SIMULATED</p>
-          
+
           <div className="flex gap-6">
             <a href="#hero" className="hover:text-emerald-500 transition-colors">PRIVACY</a>
             <a href="#hero" className="hover:text-emerald-500 transition-colors">TERMS</a>
@@ -852,13 +851,13 @@ export default function LandingPage({
       <AnimatePresence>
         {selectedDecision && (
           <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-[200] flex items-center justify-center p-6">
-            <motion.div 
+            <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
               className="bg-[#0F1115] border border-white/10 w-full max-w-3xl p-8 relative max-h-[90vh] overflow-y-auto"
             >
-              <button 
+              <button
                 onClick={() => setSelectedDecision(null)}
                 className="absolute top-6 right-6 p-2 text-slate-500 hover:text-white border border-white/5 hover:border-white/10 bg-white/5 font-mono text-[10px] tracking-widest"
               >
@@ -900,7 +899,7 @@ export default function LandingPage({
                 </div>
 
                 <div className="pt-6">
-                  <button 
+                  <button
                     onClick={() => {
                       setSelectedDecision(null);
                       onStart();

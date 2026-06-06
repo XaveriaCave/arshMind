@@ -525,3 +525,9 @@ html.light .border-t-emerald-500 {
   padding-bottom: 70px !important;
   padding: calc(var(--spacing) * 2);
 }
+
+@media (max-width: 768px) {
+  .arshmind-top {
+    margin-top: 30px;
+  }
+}
