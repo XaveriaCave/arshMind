@@ -52,9 +52,9 @@ export default function Sidebar({
       </div>
 
       {/* Profile Card */}
-      <div className="mb-10 bg-[#0F1115] border-geom border-white/5 relative group p-6 overflow-hidden">
+      <div className="mb-10 bg-[#0F1115] border-geom border-white/5 relative group p-6 overflow-hidden arsh-mind-bottom">
         <div className="absolute top-0 right-0 w-12 h-12 bg-white/5" style={{ clipPath: 'polygon(100% 0, 100% 100%, 0 0)' }} />
-        
+
         <div className="flex gap-5 items-center relative z-10">
           <div className="relative">
             <div className="w-14 h-14 bg-black flex items-center justify-center text-3xl border border-white/10">
@@ -72,7 +72,7 @@ export default function Sidebar({
                 ⚡️ PREM OPERATIVE
               </span>
             ) : (
-              <button 
+              <button
                 onClick={() => setActiveTab("pro-upgrade")}
                 className="block text-left mt-2 font-mono text-[7.5px] font-bold tracking-widest text-emerald-500 hover:text-white border border-emerald-500/20 hover:border-emerald-500 bg-emerald-500/5 px-1.5 py-0.5 rounded-none uppercase transition-all"
               >
@@ -89,7 +89,7 @@ export default function Sidebar({
               <span className="text-emerald-500">{clarityScore}%</span>
             </div>
             <div className="h-1 bg-black w-full overflow-hidden border border-white/10">
-              <motion.div 
+              <motion.div
                 initial={{ width: 0 }}
                 animate={{ width: `${clarityScore}%` }}
                 className="h-full bg-emerald-500"

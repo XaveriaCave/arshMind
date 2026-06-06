@@ -520,3 +520,13 @@ html.light .selection\:bg-green-500\/30::selection {
 html.light .border-t-emerald-500 {
   border-top-color: var(--color-emerald-500) !important;
 }
+
+.arsh-mind-bottom {
+  padding-bottom: 70px;
+}
+
+@media (max-width: 768px) {
+  .arsh-mind-bottom {
+    padding-bottom: 70px;
+  }
+}
