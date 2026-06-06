@@ -2,17 +2,17 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { UserProfile } from "../../types";
 import { cn } from "../../lib/utils";
-import { 
-  INDUSTRIES, EMPLOYMENT_TYPES, ASSETS, LOANS, GOALS, 
-  RISK_LEVELS, LOCATIONS, COMMITMENTS, URGENCY_LEVELS, EDUCATION_LEVELS 
+import {
+  INDUSTRIES, EMPLOYMENT_TYPES, ASSETS, LOANS, GOALS,
+  RISK_LEVELS, LOCATIONS, COMMITMENTS, URGENCY_LEVELS, EDUCATION_LEVELS
 } from "../../constants";
 import { Check, ChevronLeft, ChevronRight, Lock } from "lucide-react";
 
-export default function Wizard({ 
-  initialProfile, 
+export default function Wizard({
+  initialProfile,
   onComplete,
-  onBack 
-}: { 
+  onBack
+}: {
   initialProfile: Partial<UserProfile>;
   onComplete: (profile: UserProfile) => void;
   onBack: () => void;
@@ -74,16 +74,16 @@ export default function Wizard({
           {STEPS.map((s) => (
             <div key={s.id} className="relative group">
               {step === s.id && (
-                <motion.div 
+                <motion.div
                   layoutId="active-step-indicator"
-                  className="absolute -left-10 top-0 bottom-0 w-1 bg-emerald-500" 
+                  className="absolute -left-10 top-0 bottom-0 w-1 bg-emerald-500"
                 />
               )}
               <div className="flex items-center">
                 <div className={cn(
                   "w-8 h-8 rounded-none border-geom flex items-center justify-center text-[10px] font-mono transition-all duration-500 mr-4",
-                  step === s.id ? "bg-emerald-500 text-black border-emerald-400" : 
-                  step > s.id ? "bg-emerald-500/20 text-emerald-500 border-emerald-500/30" : "bg-white/5 text-slate-600 border-white/5"
+                  step === s.id ? "bg-emerald-500 text-black border-emerald-400" :
+                    step > s.id ? "bg-emerald-500/20 text-emerald-500 border-emerald-500/30" : "bg-white/5 text-slate-600 border-white/5"
                 )}>
                   {step > s.id ? <Check size={14} strokeWidth={3} /> : `0${s.id}`}
                 </div>
@@ -97,7 +97,7 @@ export default function Wizard({
             </div>
           ))}
         </nav>
-        
+
         <div className="mt-auto space-y-4">
           <div className="h-px bg-white/5 w-full" />
           <div className="flex items-center gap-3 text-slate-500 text-[9px] font-mono tracking-widest">
@@ -111,12 +111,12 @@ export default function Wizard({
       <div className="lg:hidden sticky top-0 bg-black/90 backdrop-blur-md z-40 border-b border-white/5">
         <div className="overflow-x-auto flex gap-3 p-4 no-scrollbar">
           {STEPS.map((s) => (
-            <div 
-              key={s.id} 
+            <div
+              key={s.id}
               className={cn(
                 "flex-shrink-0 px-4 py-2 border-geom text-[9px] font-mono uppercase tracking-widest flex items-center gap-2",
-                step === s.id ? "bg-emerald-500 text-black border-emerald-400" : 
-                step > s.id ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" : "bg-white/5 text-slate-600 border-white/5"
+                step === s.id ? "bg-emerald-500 text-black border-emerald-400" :
+                  step > s.id ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" : "bg-white/5 text-slate-600 border-white/5"
               )}
             >
               <div className="w-4 h-4 flex items-center justify-center">
@@ -127,7 +127,7 @@ export default function Wizard({
           ))}
         </div>
         <div className="w-full h-0.5 bg-white/5">
-          <motion.div 
+          <motion.div
             className="h-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]"
             initial={false}
             animate={{ width: `${(step / 7) * 100}%` }}
@@ -150,7 +150,7 @@ export default function Wizard({
               {/* Step Title Header */}
               <div className="relative border-l border-emerald-500/30 pl-8">
                 <span className="text-[10px] text-emerald-500 font-mono tracking-[0.4em] uppercase block mb-3">Module // 0{step}</span>
-                <h3 className="text-4xl font-bold text-white uppercase tracking-tighter leading-none mb-2">{STEPS[step-1].title}</h3>
+                <h3 className="text-4xl font-bold text-white uppercase tracking-tighter leading-none mb-2">{STEPS[step - 1].title}</h3>
                 <div className="h-1 w-12 bg-emerald-500" />
               </div>
 
@@ -164,11 +164,11 @@ export default function Wizard({
                       <HUDInput label="Location" value={profile.city} onChange={v => updateProfile({ city: v })} placeholder="Mumbai, IN" />
                     </div>
                     <HUDSelect label="Professional Education" options={EDUCATION_LEVELS} value={profile.education} onChange={v => updateProfile({ education: v })} />
-                    <HUDToggleGroup 
-                      label="Social Matrix" 
-                      options={["Single", "Married", "In Relationship"]} 
-                      value={profile.maritalStatus} 
-                      onChange={v => updateProfile({ maritalStatus: v })} 
+                    <HUDToggleGroup
+                      label="Social Matrix"
+                      options={["Single", "Married", "In Relationship"]}
+                      value={profile.maritalStatus}
+                      onChange={v => updateProfile({ maritalStatus: v })}
                     />
                   </>
                 )}
@@ -205,20 +205,20 @@ export default function Wizard({
                 {step === 4 && (
                   <>
                     <div className="space-y-4">
-                       <label className="text-[10px] uppercase font-mono text-slate-500 tracking-widest">Asset Inventory</label>
-                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                         {ASSETS.map(asset => (
-                           <HUDToggle key={asset} active={profile.assets?.includes(asset)} onClick={() => toggleArrayItem("assets", asset)} label={asset} />
-                         ))}
-                       </div>
+                      <label className="text-[10px] uppercase font-mono text-slate-500 tracking-widest">Asset Inventory</label>
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        {ASSETS.map(asset => (
+                          <HUDToggle key={asset} active={profile.assets?.includes(asset)} onClick={() => toggleArrayItem("assets", asset)} label={asset} />
+                        ))}
+                      </div>
                     </div>
                     <div className="space-y-4">
-                       <label className="text-[10px] uppercase font-mono text-slate-500 tracking-widest">Debt Vectors</label>
-                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                         {LOANS.map(loan => (
-                           <HUDToggle key={loan} active={profile.loans?.includes(loan)} onClick={() => toggleArrayItem("loans", loan)} label={loan} />
-                         ))}
-                       </div>
+                      <label className="text-[10px] uppercase font-mono text-slate-500 tracking-widest">Debt Vectors</label>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                        {LOANS.map(loan => (
+                          <HUDToggle key={loan} active={profile.loans?.includes(loan)} onClick={() => toggleArrayItem("loans", loan)} label={loan} />
+                        ))}
+                      </div>
                     </div>
                     <div className="grid grid-cols-2 gap-8">
                       <HUDInput label="Monthly Liability Payoff" type="number" value={profile.monthlyEmi} onChange={v => updateProfile({ monthlyEmi: Number(v) })} placeholder="Total EMI" />
@@ -230,19 +230,19 @@ export default function Wizard({
                 {step === 5 && (
                   <>
                     <div className="space-y-4">
-                       <label className="text-[10px] uppercase font-mono text-slate-500 tracking-widest">Objective Matrix</label>
-                       <div className="grid grid-cols-2 gap-3">
-                         {GOALS.map(goal => (
-                           <HUDToggle key={goal.id} active={profile.goals?.includes(goal.id)} onClick={() => toggleArrayItem("goals", goal.id)} label={`${goal.emoji} ${goal.label}`} />
-                         ))}
-                       </div>
+                      <label className="text-[10px] uppercase font-mono text-slate-500 tracking-widest">Objective Matrix</label>
+                      <div className="grid grid-cols-2 gap-3">
+                        {GOALS.map(goal => (
+                          <HUDToggle key={goal.id} active={profile.goals?.includes(goal.id)} onClick={() => toggleArrayItem("goals", goal.id)} label={`${goal.emoji} ${goal.label}`} />
+                        ))}
+                      </div>
                     </div>
                     {profile.goals && profile.goals.length > 0 && (
-                      <HUDSelect 
-                        label="Priority Alpha" 
-                        options={GOALS.filter(g => profile.goals?.includes(g.id)).map(g => g.label)} 
-                        value={profile.primaryGoal} 
-                        onChange={v => updateProfile({ primaryGoal: v })} 
+                      <HUDSelect
+                        label="Priority Alpha"
+                        options={GOALS.filter(g => profile.goals?.includes(g.id)).map(g => g.label)}
+                        value={profile.primaryGoal}
+                        onChange={v => updateProfile({ primaryGoal: v })}
                       />
                     )}
                   </>
@@ -255,13 +255,13 @@ export default function Wizard({
                         <label className="text-[10px] uppercase font-mono text-slate-500 tracking-widest">Risk Calibration</label>
                         <span className={cn(
                           "text-xs font-mono font-bold uppercase tracking-widest pb-1",
-                          profile.riskLevel === "Aggressive" ? "text-rose-500" : 
-                          profile.riskLevel === "Moderate" ? "text-amber-500" : "text-emerald-500"
+                          profile.riskLevel === "Aggressive" ? "text-rose-500" :
+                            profile.riskLevel === "Moderate" ? "text-amber-500" : "text-emerald-500"
                         )}>{profile.riskLevel || "Moderate"}</span>
                       </div>
                       <div className="flex gap-4">
                         {RISK_LEVELS.map(level => (
-                          <button 
+                          <button
                             key={level}
                             onClick={() => updateProfile({ riskLevel: level })}
                             className={cn(
@@ -277,9 +277,9 @@ export default function Wizard({
                         <div className="flex gap-3">
                           <span className="text-emerald-500 font-bold shrink-0">//</span>
                           <span>
-                            {profile.riskLevel === "Conservative" ? "PRIORITY: CAPITAL SHIELDING. FOCUS ON SYSTEMIC STABILITY AND INFLATION RESISTANCE." : 
-                             profile.riskLevel === "Aggressive" ? "PRIORITY: ACCELERATED ACCUMULATION. EXPLOITING VOLATILITY FOR MAXIMAL DELTA." : 
-                             "PRIORITY: EQUILIBRIUM. BALANCED VECTOR ALLOCATION ACROSS STABLE AND VOLATILE ASSETS."}
+                            {profile.riskLevel === "Conservative" ? "PRIORITY: CAPITAL SHIELDING. FOCUS ON SYSTEMIC STABILITY AND INFLATION RESISTANCE." :
+                              profile.riskLevel === "Aggressive" ? "PRIORITY: ACCELERATED ACCUMULATION. EXPLOITING VOLATILITY FOR MAXIMAL DELTA." :
+                                "PRIORITY: EQUILIBRIUM. BALANCED VECTOR ALLOCATION ACROSS STABLE AND VOLATILE ASSETS."}
                           </span>
                         </div>
                       </div>
@@ -298,17 +298,17 @@ export default function Wizard({
                       <HUDSelect label="Geographic Elasticity" options={LOCATIONS} value={profile.locationFlexibility} onChange={v => updateProfile({ locationFlexibility: v })} />
                     </div>
                     <div className="space-y-4">
-                       <label className="text-[10px] uppercase font-mono text-slate-500 tracking-widest">Hard Constraints</label>
-                       <div className="flex flex-wrap gap-3">
-                         {COMMITMENTS.map(c => (
-                           <HUDToggle key={c} active={profile.commitments?.includes(c)} onClick={() => toggleArrayItem("commitments", c)} label={c} />
-                         ))}
-                       </div>
+                      <label className="text-[10px] uppercase font-mono text-slate-500 tracking-widest">Hard Constraints</label>
+                      <div className="flex flex-wrap gap-3">
+                        {COMMITMENTS.map(c => (
+                          <HUDToggle key={c} active={profile.commitments?.includes(c)} onClick={() => toggleArrayItem("commitments", c)} label={c} />
+                        ))}
+                      </div>
                     </div>
                     <HUDSelect label="Vector Urgency" options={URGENCY_LEVELS} value={profile.timelineUrgency} onChange={v => updateProfile({ timelineUrgency: v })} />
                     <div className="space-y-4">
                       <label className="text-[10px] uppercase font-mono text-slate-500 tracking-widest">Entropy Parameters (Notes)</label>
-                      <textarea 
+                      <textarea
                         className="w-full bg-[#0A0A0B] border-geom border-white/10 focus:border-emerald-500/50 p-6 text-sm text-white focus:outline-none focus:ring-1 focus:ring-emerald-500/10 transition-all font-mono leading-relaxed"
                         rows={5}
                         placeholder="ADDITIONAL SYSTEM PARAMETERS OR CONSTRAINTS..."
@@ -349,7 +349,7 @@ function HUDInput({ label, value, onChange, placeholder, type = "text" }: any) {
   return (
     <div className="space-y-3 group">
       <label className="text-[9px] uppercase font-mono text-slate-500 tracking-[0.2em] block group-focus-within:text-emerald-500 transition-colors uppercase">{label}</label>
-      <input 
+      <input
         type={type}
         value={value || ""}
         onChange={(e) => onChange(e.target.value)}
@@ -365,7 +365,7 @@ function HUDSelect({ label, options, value, onChange }: any) {
     <div className="space-y-3 group">
       <label className="text-[9px] uppercase font-mono text-slate-500 tracking-[0.2em] block group-focus-within:text-emerald-500 transition-colors uppercase">{label}</label>
       <div className="relative">
-        <select 
+        <select
           value={value || ""}
           onChange={(e) => onChange(e.target.value)}
           className="w-full bg-[#0A0A0B] border-geom border-white/10 focus:border-emerald-500/50 p-5 text-sm text-white focus:outline-none focus:ring-1 focus:ring-emerald-500/10 transition-all font-mono appearance-none cursor-pointer pr-12"
@@ -424,7 +424,7 @@ function HUDToggle({ active, onClick, label }: any) {
 function HUDSlider({ min, max, step, value, onChange }: any) {
   return (
     <div className="relative pt-2 pb-6">
-      <input 
+      <input
         type="range"
         min={min}
         max={max}
