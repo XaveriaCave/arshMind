@@ -53,7 +53,7 @@ export default function Dashboard({
     <div className="h-screen flex text-slate-300 bg-[#0A0A0B] overflow-hidden">
       {/* Mobile Drawer Backdrop */}
       {isSidebarOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/80 backdrop-blur-md z-40 lg:hidden"
           onClick={() => setIsSidebarOpen(false)}
         />
@@ -64,9 +64,9 @@ export default function Dashboard({
         "fixed inset-y-0 left-0 z-50 w-72 bg-[#0A0A0B] border-r border-white/5 transition-transform duration-300 lg:translate-x-0 lg:static lg:block h-full overflow-y-auto no-scrollbar",
         isSidebarOpen ? "translate-x-0" : "-translate-x-full"
       )}>
-        <Sidebar 
-          profile={profile} 
-          activeTab={activeTab} 
+        <Sidebar
+          profile={profile}
+          activeTab={activeTab}
           setActiveTab={(tab) => { setActiveTab(tab); setIsSidebarOpen(false); }}
           tabs={TABS}
           onEditProfile={onEditProfile}
@@ -91,8 +91,8 @@ export default function Dashboard({
             </span>
           </div>
           <div className="flex items-center gap-4">
-            <button 
-              onClick={onToggleTheme} 
+            <button
+              onClick={onToggleTheme}
               className="p-2 border-geom border border-white/5 hover:border-emerald-500/50 hover:bg-emerald-500/10 text-slate-400 hover:text-emerald-500 transition-colors"
               title={`Switch to ${theme === "dark" ? "Light" : "Dark"} Mode`}
             >
@@ -107,35 +107,35 @@ export default function Dashboard({
         <div className="flex-1 p-6 lg:p-12 overflow-y-auto no-scrollbar">
           {activeTab === "timeline" && <TimelineView profile={profile} scenario={activeScenario} />}
           {activeTab === "scenarios" && (
-            <ScenarioExplorer 
-              scenarios={scenarios} 
-              activeScenarioId={settings.activeScenarioId} 
-              onSelect={(id) => onUpdateSettings({ ...settings, activeScenarioId: id })} 
+            <ScenarioExplorer
+              scenarios={scenarios}
+              activeScenarioId={settings.activeScenarioId}
+              onSelect={(id) => onUpdateSettings({ ...settings, activeScenarioId: id })}
               profile={profile}
               onUpdateScenarios={onUpdateScenarios}
               onNavigateToUpgrade={() => setActiveTab("pro-upgrade")}
             />
           )}
           {activeTab === "financials" && (
-            <FinancialProjections 
-              profile={profile} 
-              scenarios={scenarios} 
+            <FinancialProjections
+              profile={profile}
+              scenarios={scenarios}
               settings={settings}
               onUpdateSettings={onUpdateSettings}
             />
           )}
           {activeTab === "action" && (
-            <ActionPlan 
-              scenarios={scenarios} 
-              activeScenarioId={settings.activeScenarioId} 
-              profile={profile} 
+            <ActionPlan
+              scenarios={scenarios}
+              activeScenarioId={settings.activeScenarioId}
+              profile={profile}
               onUpdateScenarios={onUpdateScenarios}
               onNavigateToUpgrade={() => setActiveTab("pro-upgrade")}
             />
           )}
           {activeTab === "compare" && <ComparePaths scenarios={scenarios} />}
           {activeTab === "pro-upgrade" && (
-            <ProUpgrade 
+            <ProUpgrade
               profile={profile}
               onUpdateProfile={onUpdateProfile}
             />
@@ -143,9 +143,9 @@ export default function Dashboard({
         </div>
 
         {/* Mobile Bottom Nav */}
-        <nav className="lg:hidden h-20 border-t border-white/5 bg-black/90 backdrop-blur-md flex items-center justify-around sticky bottom-0 z-30 pb-4">
+        <nav className="lg:hidden h-20 border-t border-white/5 bg-black/90 backdrop-blur-md flex items-center justify-around fixed w-full bottom-0 z-30 pb-4">
           {TABS.map((tab) => (
-            <button 
+            <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={cn(
