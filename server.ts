@@ -50,9 +50,28 @@ function analyzeRateLimiter(req: express.Request, res: express.Response, next: e
 
 async function startServer() {
   const app = express();
-  const PORT = 3000;
+  const PORT = parseInt(process.env.PORT || "3000");
+
 
   app.use(express.json());
+
+  // CORS: Allow Firebase Hosting and custom domain to call this API
+  const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || "")
+    .split(",")
+    .map(o => o.trim())
+    .filter(Boolean);
+
+  app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
+    const origin = req.headers.origin || "";
+    // Allow if no origin (same-origin / server-to-server) or origin is whitelisted
+    if (!origin || ALLOWED_ORIGINS.length === 0 || ALLOWED_ORIGINS.includes(origin)) {
+      res.setHeader("Access-Control-Allow-Origin", origin || "*");
+      res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+      res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+    }
+    if (req.method === "OPTIONS") return res.sendStatus(204);
+    next();
+  });
 
   // API Routes
   app.post("/api/analyze", analyzeRateLimiter, async (req, res) => {
@@ -273,7 +292,7 @@ async function startServer() {
   }
 
   app.listen(PORT, "0.0.0.0", () => {
-    console.log(`Server running on http://localhost:${PORT}`);
+    console.log(`Server running on port ${PORT}`);
   });
 }
 

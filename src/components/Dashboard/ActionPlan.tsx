@@ -113,7 +113,8 @@ export default function ActionPlan({
     setCalibrateError(null);
     setCalibrateSuccess(null);
     try {
-      const res = await fetch("/api/replan-path", {
+      const apiBase = import.meta.env.VITE_API_URL || "";
+      const res = await fetch(`${apiBase}/api/replan-path`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
