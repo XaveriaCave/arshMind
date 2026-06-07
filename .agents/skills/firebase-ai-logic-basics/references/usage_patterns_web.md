@@ -30,7 +30,7 @@ const generationConfig = {
 };
 
 // Specify the config as part of creating the `GenerativeModel` instance
-const model = getGenerativeModel(ai, { model: "gemini-2.5-flash-lite",  generationConfig });
+const model = getGenerativeModel(ai, { model: "gemini-3.5-flash-lite",  generationConfig });
 ```
 
 ## Core Capabilities
@@ -119,7 +119,7 @@ const ai = getAI(firebaseApp, { backend: new GoogleAIBackend() });
 
 // Create a `GenerativeModel` instance with a model that supports your use case
 const model = getGenerativeModel(ai, {
-  model: "gemini-2.5-flash-image",
+  model: "gemini-3.5-flash-image",
   // Configure the model to respond with text and images (required)
   generationConfig: {
     responseModalities: [ResponseModality.TEXT, ResponseModality.IMAGE],
@@ -150,7 +150,7 @@ Enforce a specific JSON schema for the response.
 ```JavaScript
 import { getGenerativeModel, Schema } from "firebase/ai";
 const jsonModel = getGenerativeModel(ai, {
-    model: "gemini-2.5-flash-lite",
+    model: "gemini-3.5-flash-lite",
     generationConfig: {
         responseMimeType: "application/json",
         // Optional: Define a schema

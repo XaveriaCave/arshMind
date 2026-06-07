@@ -47,8 +47,8 @@ class MainActivity : AppCompatActivity() {
         // Initialize Firebase AI
         val ai = Firebase.ai
 
-        // Use a model (e.g., gemini-2.5-flash-lite)
-        val model = ai.generativeModel("gemini-2.5-flash-lite")
+        // Use a model (e.g., gemini-3.5-flash-lite)
+        val model = ai.generativeModel("gemini-3.5-flash-lite")
 
         // Generate content
         lifecycleScope.launch {
@@ -82,7 +82,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val ai = Firebase.ai
-        val model = ai.generativeModel("gemini-2.5-flash-lite")
+        val model = ai.generativeModel("gemini-3.5-flash-lite")
         
         lifecycleScope.launch {
             val response = model.generateContent("Hello Gemini!")
