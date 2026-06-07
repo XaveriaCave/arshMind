@@ -10,7 +10,7 @@ export default function TimelineView({ profile, scenario }: { profile: UserProfi
         <div className="w-12 h-12 border-2 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin mb-8" />
         <div className="text-emerald-500 font-mono text-sm uppercase tracking-[0.4em] mb-4">CALIBRATING_SCENARIOS...</div>
         <p className="text-slate-500 text-xs font-mono uppercase tracking-widest text-center max-w-md px-10 leading-relaxed italic">
-          ArshMind is currently simulating career-financial intersections. This process involves high-density vector mapping and may take 15-30 seconds.
+          ArshMind is currently simulating career-financial intersections. This process involves high-density vector mapping and may take 30-60 seconds.
         </p>
       </div>
     );
@@ -65,7 +65,7 @@ export default function TimelineView({ profile, scenario }: { profile: UserProfi
               </div>
               <div className="space-y-4">
                 {displayMilestones.map((m: any, i) => (
-                   <MilestoneCard key={i} milestone={m} likelihood={Math.max(90 - (idx * 15) - (i * 5), 45)} />
+                  <MilestoneCard key={i} milestone={m} likelihood={Math.max(90 - (idx * 15) - (i * 5), 45)} />
                 ))}
               </div>
             </div>
@@ -107,14 +107,14 @@ function MilestoneCard({ milestone, likelihood }: { milestone: any, likelihood: 
   };
 
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       whileHover={{ scale: 1.02 }}
       className={cn("p-6 border-geom relative overflow-hidden group transition-all duration-300", getColorClass())}
     >
       <div className="absolute top-0 right-0 w-8 h-8 opacity-20" style={{ clipPath: 'polygon(100% 0, 100% 100%, 0 0)', backgroundColor: 'currentColor' }} />
-      
+
       <div className="flex justify-between items-start mb-5">
         <div className="w-10 h-10 bg-black/40 flex items-center justify-center border border-white/10">
           {getIcon()}
@@ -122,14 +122,14 @@ function MilestoneCard({ milestone, likelihood }: { milestone: any, likelihood: 
         <span className="text-[9px] font-mono text-slate-500 uppercase tracking-widest border-b border-white/10 pb-0.5">{milestone.type}</span>
       </div>
       <p className="text-[13px] text-white/90 mb-6 leading-relaxed font-medium">{milestone.content}</p>
-      
+
       <div className="space-y-2">
         <div className="flex justify-between text-[8px] uppercase font-mono text-slate-600 tracking-widest">
           <span>Success Delta</span>
           <span>{likelihood}%</span>
         </div>
         <div className="h-0.5 bg-black w-full overflow-hidden">
-          <motion.div 
+          <motion.div
             initial={{ width: 0 }}
             animate={{ width: `${likelihood}%` }}
             className="h-full bg-current opacity-60"
@@ -147,8 +147,8 @@ function GoalWindowCard({ goalId, scenario }: { goalId: string, scenario: Scenar
   return (
     <div className={cn(
       "p-6 border-geom bg-[#0F1115] transition-all duration-500 hover:y-[-4px]",
-      isHard ? "border-rose-900/40 hover:border-rose-500/40" : 
-      isStretch ? "border-amber-900/40 hover:border-amber-500/40" : "border-emerald-900/40 hover:border-emerald-500/40"
+      isHard ? "border-rose-900/40 hover:border-rose-500/40" :
+        isStretch ? "border-amber-900/40 hover:border-amber-500/40" : "border-emerald-900/40 hover:border-emerald-500/40"
     )}>
       <div className="flex justify-between items-start mb-6">
         <div className="w-12 h-12 bg-black/40 border border-white/5 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
@@ -156,15 +156,15 @@ function GoalWindowCard({ goalId, scenario }: { goalId: string, scenario: Scenar
         </div>
         <span className={cn(
           "text-[8px] font-mono font-bold px-2 py-0.5 border-geom uppercase tracking-widest",
-          isHard ? "text-rose-500 border-rose-500/20 bg-rose-500/5" : 
-          isStretch ? "text-amber-500 border-amber-500/20 bg-amber-500/5" : "text-emerald-500 border-emerald-500/20 bg-emerald-500/5"
+          isHard ? "text-rose-500 border-rose-500/20 bg-rose-500/5" :
+            isStretch ? "text-amber-500 border-amber-500/20 bg-amber-500/5" : "text-emerald-500 border-emerald-500/20 bg-emerald-500/5"
         )}>
           {isHard ? "Hard" : isStretch ? "Stretch" : "Optimal"}
         </span>
       </div>
       <h4 className="text-[11px] font-bold text-white uppercase tracking-widest mb-1.5">{goalId.replace("_", " ")}</h4>
       <p className="text-[9px] text-slate-500 font-mono mb-6 uppercase tracking-widest">Window: 2027—2029</p>
-      
+
       <div className="flex items-end justify-between border-t border-white/5 pt-4">
         <div className="text-xl font-bold text-white tracking-tighter">84%</div>
         <div className="text-[8px] text-slate-600 uppercase font-mono tracking-widest">P // Success</div>

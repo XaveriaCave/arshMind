@@ -35,7 +35,6 @@ function analyzeRateLimiter(req: express.Request, res: express.Response, next: e
 
   clients.set(ip, clientData);
 
-  // Set rate limit headers
   res.setHeader("X-RateLimit-Limit", MAX_ANALYZES_PER_WINDOW);
   res.setHeader("X-RateLimit-Remaining", Math.max(0, MAX_ANALYZES_PER_WINDOW - clientData.count));
 
@@ -50,12 +49,10 @@ function analyzeRateLimiter(req: express.Request, res: express.Response, next: e
 
 async function startServer() {
   const app = express();
-  const PORT = parseInt(process.env.PORT || "3000");
-
+  const PORT = 3000;
 
   app.use(express.json());
 
-  // CORS: Allow Firebase Hosting and custom domain to call this API
   const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || "")
     .split(",")
     .map(o => o.trim())
@@ -63,7 +60,6 @@ async function startServer() {
 
   app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
     const origin = req.headers.origin || "";
-    // Allow if no origin (same-origin / server-to-server) or origin is whitelisted
     if (!origin || ALLOWED_ORIGINS.length === 0 || ALLOWED_ORIGINS.includes(origin)) {
       res.setHeader("Access-Control-Allow-Origin", origin || "*");
       res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
@@ -78,6 +74,13 @@ async function startServer() {
     if (!ai) {
       return res.status(500).json({ error: "Gemini API key not configured" });
     }
+
+    // 55-second server-side timeout — ensures client fetch timeout fires first
+    const serverTimeout = setTimeout(() => {
+      if (!res.headersSent) {
+        res.status(504).json({ error: "Analysis timed out on server. Please try again." });
+      }
+    }, 55000);
 
     try {
       const { profile } = req.body;
@@ -106,7 +109,7 @@ async function startServer() {
       `;
 
       const response = await ai.models.generateContent({
-        model: "gemini-3.5-flash",
+        model: "gemini-2.5-flash",
         contents: [{ role: 'user', parts: [{ text: prompt }] }],
         config: {
           responseMimeType: "application/json",
@@ -170,16 +173,21 @@ async function startServer() {
         }
       });
 
+      clearTimeout(serverTimeout);
+
       const text = response.text;
       if (!text) {
         console.error("AI returned empty text");
         throw new Error("Empty response from AI");
       }
       console.log("AI Analysis Successful");
-      res.json(JSON.parse(text));
+      if (!res.headersSent) res.json(JSON.parse(text));
     } catch (error) {
+      clearTimeout(serverTimeout);
       console.error("AI Analysis Error:", error);
-      res.status(500).json({ error: error instanceof Error ? error.message : String(error) });
+      if (!res.headersSent) {
+        res.status(500).json({ error: error instanceof Error ? error.message : String(error) });
+      }
     }
   });
 
@@ -187,6 +195,12 @@ async function startServer() {
     if (!ai) {
       return res.status(500).json({ error: "Gemini API key not configured" });
     }
+
+    const serverTimeout = setTimeout(() => {
+      if (!res.headersSent) {
+        res.status(504).json({ error: "Re-calibration timed out on server. Please try again." });
+      }
+    }, 55000);
 
     try {
       const { profile, scenario, feedback } = req.body;
@@ -209,7 +223,7 @@ async function startServer() {
       `;
 
       const response = await ai.models.generateContent({
-        model: "gemini-3.5-flash",
+        model: "gemini-2.5-flash",
         contents: [{ role: 'user', parts: [{ text: prompt }] }],
         config: {
           responseMimeType: "application/json",
@@ -264,15 +278,20 @@ async function startServer() {
         }
       });
 
+      clearTimeout(serverTimeout);
+
       const text = response.text;
       if (!text) {
         throw new Error("Empty response from AI re-calibration engine");
       }
       console.log("AI Re-calibration Successful");
-      res.json(JSON.parse(text));
+      if (!res.headersSent) res.json(JSON.parse(text));
     } catch (error) {
+      clearTimeout(serverTimeout);
       console.error("AI Re-calibration Error:", error);
-      res.status(500).json({ error: error instanceof Error ? error.message : String(error) });
+      if (!res.headersSent) {
+        res.status(500).json({ error: error instanceof Error ? error.message : String(error) });
+      }
     }
   });
 
@@ -292,7 +311,7 @@ async function startServer() {
   }
 
   app.listen(PORT, "0.0.0.0", () => {
-    console.log(`Server running on port ${PORT}`);
+    console.log(`Server running on http://localhost:${PORT}`);
   });
 }
 
