@@ -16,6 +16,8 @@ import Dashboard from "./components/Dashboard/Dashboard";
 import LandingPage from "./components/LandingPage";
 import { Sun, Moon } from "lucide-react";
 
+const API_BASE = (import.meta as any).env?.VITE_API_BASE_URL || "";
+
 type View = "LANDING" | "BOOT" | "CHARACTER_SELECT" | "WIZARD" | "ANALYSIS" | "DASHBOARD";
 
 // ── Extended-only keys from Wizard contextual fields ─────────────────────────
@@ -211,7 +213,7 @@ export default function App() {
     // ── Call AI Analyze with 50-second client timeout ─────────────────────
     try {
       const response = await fetchWithTimeout(
-        "/api/analyze",
+        `${API_BASE}/api/analyze`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
