@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { AlertTriangle, Lightbulb, Zap, TrendingUp, Shield, Rocket, Globe, DollarSign, Briefcase, Sparkles, Loader2 } from "lucide-react";
 import { useState } from "react";
 
-const API_BASE = (import.meta as any).env?.VITE_API_BASE_URL || "";
+const API_BASE = "https://arshmind.onrender.com";
 
 export default function ScenarioExplorer({
   scenarios,
