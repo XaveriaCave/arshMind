@@ -60,7 +60,13 @@ async function startServer() {
 
   app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
     const origin = req.headers.origin || "";
-    if (!origin || ALLOWED_ORIGINS.length === 0 || ALLOWED_ORIGINS.includes(origin)) {
+    const allowed = [
+      "https://arshmind2.web.app",
+      "https://arshmind2.firebaseapp.com",
+      "http://localhost:3000",
+      "http://localhost:5173",
+    ];
+    if (!origin || allowed.includes(origin)) {
       res.setHeader("Access-Control-Allow-Origin", origin || "*");
       res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
       res.setHeader("Access-Control-Allow-Headers", "Content-Type");

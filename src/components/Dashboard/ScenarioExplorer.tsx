@@ -4,6 +4,8 @@ import { motion, AnimatePresence } from "motion/react";
 import { AlertTriangle, Lightbulb, Zap, TrendingUp, Shield, Rocket, Globe, DollarSign, Briefcase, Sparkles, Loader2 } from "lucide-react";
 import { useState } from "react";
 
+const API_BASE = (import.meta as any).env?.VITE_API_BASE_URL || "";
+
 export default function ScenarioExplorer({
    scenarios,
    activeScenarioId,
@@ -34,7 +36,7 @@ export default function ScenarioExplorer({
       setCalibrateSuccess(null);
       try {
          const apiBase = import.meta.env.VITE_API_URL || "";
-         const res = await fetch(`${apiBase}/api/replan-path`, {
+         const res = await fetch(`${API_BASE}/api/replan-path`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({

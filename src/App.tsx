@@ -54,7 +54,7 @@ async function fetchWithTimeout(url: string, options: RequestInit, timeoutMs: nu
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    const response = await fetch(url, { ...options, signal: controller.signal });
+    const response = await fetch(`${API_BASE}/api/analyze`, { ...options, signal: controller.signal });
     clearTimeout(timeoutId);
     return response;
   } catch (err) {
