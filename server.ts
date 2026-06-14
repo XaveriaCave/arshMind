@@ -47,6 +47,75 @@ function analyzeRateLimiter(req: express.Request, res: express.Response, next: e
   next();
 }
 
+// Shared schema for a single action task
+const ACTION_TASK_SCHEMA = {
+  type: Type.OBJECT,
+  properties: {
+    id: { type: Type.STRING },
+    title: { type: Type.STRING },
+    description: { type: Type.STRING },
+    cadence: { type: Type.STRING }, // "weekly" | "monthly" | "quarterly" | "yearly"
+    category: { type: Type.STRING }, // "career" | "financial" | "skill" | "network" | "health" | "business"
+    priority: { type: Type.STRING }, // "critical" | "high" | "medium" | "low"
+    targetMonth: { type: Type.NUMBER }, // e.g. 1 = first month, 3 = month 3, 12 = end of year 1
+  },
+  required: ["id", "title", "description", "cadence", "category", "priority", "targetMonth"]
+};
+
+// Shared scenario schema (used for both analyze and replan)
+const SCENARIO_SCHEMA = {
+  type: Type.OBJECT,
+  properties: {
+    id: { type: Type.STRING },
+    title: { type: Type.STRING },
+    subtitle: { type: Type.STRING },
+    risk: { type: Type.STRING },
+    viability: { type: Type.NUMBER },
+    description: { type: Type.STRING },
+    yearlyModifiers: {
+      type: Type.ARRAY,
+      items: {
+        type: Type.OBJECT,
+        properties: {
+          year: { type: Type.NUMBER },
+          salaryMult: { type: Type.NUMBER },
+          savingsMult: { type: Type.NUMBER },
+          notes: { type: Type.STRING }
+        },
+        required: ["year", "salaryMult", "savingsMult", "notes"]
+      }
+    },
+    stats: {
+      type: Type.OBJECT,
+      properties: {
+        fiveYearSalary: { type: Type.NUMBER },
+        fiveYearSavings: { type: Type.NUMBER },
+        confidence: { type: Type.STRING }
+      },
+      required: ["fiveYearSalary", "fiveYearSavings", "confidence"]
+    },
+    riskFactors: { type: Type.ARRAY, items: { type: Type.STRING } },
+    winningMoves: { type: Type.ARRAY, items: { type: Type.STRING } },
+    milestones: {
+      type: Type.ARRAY,
+      items: {
+        type: Type.OBJECT,
+        properties: {
+          year: { type: Type.NUMBER },
+          type: { type: Type.STRING },
+          content: { type: Type.STRING }
+        },
+        required: ["year", "type", "content"]
+      }
+    },
+    actionPlan: {
+      type: Type.ARRAY,
+      items: ACTION_TASK_SCHEMA
+    }
+  },
+  required: ["id", "title", "subtitle", "risk", "viability", "description", "stats", "milestones", "actionPlan"]
+};
+
 async function startServer() {
   const app = express();
   const PORT = 3000;
@@ -81,7 +150,6 @@ async function startServer() {
       return res.status(500).json({ error: "Gemini API key not configured" });
     }
 
-    // 55-second server-side timeout — ensures client fetch timeout fires first
     const serverTimeout = setTimeout(() => {
       if (!res.headersSent) {
         res.status(504).json({ error: "Analysis timed out on server. Please try again." });
@@ -109,9 +177,20 @@ async function startServer() {
         9. riskFactors (list of warnings)
         10. winningMoves (list of tips)
         11. milestones (career, lifestyle milestones for years 3, 5, 10)
+        12. actionPlan: A concrete list of 8-12 actionable tasks specific to this scenario and the user's profile.
+            Each task must have:
+            - id: unique string like "task_upskill_01"
+            - title: short action title (max 8 words)
+            - description: 1-2 sentence concrete description of what to do
+            - cadence: one of "weekly" | "monthly" | "quarterly" | "yearly"
+            - category: one of "career" | "financial" | "skill" | "network" | "health" | "business"
+            - priority: one of "critical" | "high" | "medium" | "low"
+            - targetMonth: integer 1-36 indicating which month from now to start/complete this task
+            Tasks should be ordered by targetMonth, covering the first 3 years (36 months), spread across all timeframes. Include a mix of immediate (month 1-3), short-term (month 3-12), medium-term (month 12-24), and long-term (month 24-36) tasks.
+
+        The scenarios should be: Upskill & Switch, Stay & Optimize, Launch Own Venture, Relocate to New Market, Build Passive Income, Go Freelance.
 
         Return ONLY a JSON object with the key "scenarios" containing an array of these scenarios.
-        The scenarios should be: Upskill & Switch, Stay & Optimize, Launch Own Venture, Relocate to New Market, Build Passive Income, Go Freelance.
       `;
 
       const response = await ai.models.generateContent({
@@ -124,54 +203,7 @@ async function startServer() {
             properties: {
               scenarios: {
                 type: Type.ARRAY,
-                items: {
-                  type: Type.OBJECT,
-                  properties: {
-                    id: { type: Type.STRING },
-                    title: { type: Type.STRING },
-                    subtitle: { type: Type.STRING },
-                    risk: { type: Type.STRING },
-                    viability: { type: Type.NUMBER },
-                    description: { type: Type.STRING },
-                    yearlyModifiers: {
-                      type: Type.ARRAY,
-                      items: {
-                        type: Type.OBJECT,
-                        properties: {
-                          year: { type: Type.NUMBER },
-                          salaryMult: { type: Type.NUMBER },
-                          savingsMult: { type: Type.NUMBER },
-                          notes: { type: Type.STRING }
-                        },
-                        required: ["year", "salaryMult", "savingsMult", "notes"]
-                      }
-                    },
-                    stats: {
-                      type: Type.OBJECT,
-                      properties: {
-                        fiveYearSalary: { type: Type.NUMBER },
-                        fiveYearSavings: { type: Type.NUMBER },
-                        confidence: { type: Type.STRING }
-                      },
-                      required: ["fiveYearSalary", "fiveYearSavings", "confidence"]
-                    },
-                    riskFactors: { type: Type.ARRAY, items: { type: Type.STRING } },
-                    winningMoves: { type: Type.ARRAY, items: { type: Type.STRING } },
-                    milestones: {
-                      type: Type.ARRAY,
-                      items: {
-                        type: Type.OBJECT,
-                        properties: {
-                          year: { type: Type.NUMBER },
-                          type: { type: Type.STRING },
-                          content: { type: Type.STRING }
-                        },
-                        required: ["year", "type", "content"]
-                      }
-                    }
-                  },
-                  required: ["id", "title", "subtitle", "risk", "viability", "description", "stats", "milestones"]
-                }
+                items: SCENARIO_SCHEMA
               }
             },
             required: ["scenarios"]
@@ -223,7 +255,11 @@ async function startServer() {
         User constraints/expectations/problems:
         "${feedback}"
 
-        Please produce a newly calibrated scenario object. You can update the title suffix to reflect that it is custom/re-calibrated (e.g. "${scenario.title} (Re-calibrated)") and update the description, risk, viability, yearlyModifiers, stats, riskFactors, winningMoves, and milestones to address the feedback. Keep the ID the same ("${scenario.id}").
+        Please produce a newly calibrated scenario object. You can update the title suffix to reflect that it is custom/re-calibrated (e.g. "${scenario.title} (Re-calibrated)") and update the description, risk, viability, yearlyModifiers, stats, riskFactors, winningMoves, milestones, and actionPlan to address the feedback.
+        
+        For actionPlan: regenerate 8-12 tasks that reflect the new constraints. Keep the same task structure.
+        
+        Keep the ID the same ("${scenario.id}").
 
         Return ONLY a JSON object containing the newly calibrated scenario. Do NOT wrap it in any other outer keys or objects.
       `;
@@ -234,52 +270,8 @@ async function startServer() {
         config: {
           responseMimeType: "application/json",
           responseSchema: {
-            type: Type.OBJECT,
-            properties: {
-              id: { type: Type.STRING },
-              title: { type: Type.STRING },
-              subtitle: { type: Type.STRING },
-              risk: { type: Type.STRING },
-              viability: { type: Type.NUMBER },
-              description: { type: Type.STRING },
-              yearlyModifiers: {
-                type: Type.ARRAY,
-                items: {
-                  type: Type.OBJECT,
-                  properties: {
-                    year: { type: Type.NUMBER },
-                    salaryMult: { type: Type.NUMBER },
-                    savingsMult: { type: Type.NUMBER },
-                    notes: { type: Type.STRING }
-                  },
-                  required: ["year", "salaryMult", "savingsMult", "notes"]
-                }
-              },
-              stats: {
-                type: Type.OBJECT,
-                properties: {
-                  fiveYearSalary: { type: Type.NUMBER },
-                  fiveYearSavings: { type: Type.NUMBER },
-                  confidence: { type: Type.STRING }
-                },
-                required: ["fiveYearSalary", "fiveYearSavings", "confidence"]
-              },
-              riskFactors: { type: Type.ARRAY, items: { type: Type.STRING } },
-              winningMoves: { type: Type.ARRAY, items: { type: Type.STRING } },
-              milestones: {
-                type: Type.ARRAY,
-                items: {
-                  type: Type.OBJECT,
-                  properties: {
-                    year: { type: Type.NUMBER },
-                    type: { type: Type.STRING },
-                    content: { type: Type.STRING }
-                  },
-                  required: ["year", "type", "content"]
-                }
-              }
-            },
-            required: ["id", "title", "subtitle", "risk", "viability", "description", "stats", "milestones", "yearlyModifiers", "riskFactors", "winningMoves"]
+            ...SCENARIO_SCHEMA,
+            required: [...(SCENARIO_SCHEMA.required || []), "yearlyModifiers", "riskFactors", "winningMoves"]
           }
         }
       });

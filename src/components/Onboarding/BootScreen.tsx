@@ -43,7 +43,6 @@ function TermsModal({ onClose }: { onClose: () => void }) {
 
         {/* Scrollable Content */}
         <div className="overflow-y-auto flex-1 p-6 space-y-6 text-[11px] font-mono text-slate-400 leading-relaxed">
-
           <div className="text-[9px] text-slate-600 uppercase tracking-widest">
             Last updated: June 2026 · Version 1.0 · Beta
           </div>
@@ -99,9 +98,7 @@ function TermsModal({ onClose }: { onClose: () => void }) {
               information you provide during onboarding ("Profile Data"). This includes but is not limited to:
               your name, age, location, income, savings, assets, liabilities, and career goals.
             </p>
-            <p>
-              Your Profile Data is:
-            </p>
+            <p>Your Profile Data is:</p>
             <ul className="space-y-1 pl-4">
               {[
                 "Stored securely in Google Firebase Firestore with role-level security rules",
@@ -243,13 +240,80 @@ function TermsModal({ onClose }: { onClose: () => void }) {
   );
 }
 
+// ── Shared T&C checkbox ───────────────────────────────────────────────────────
+function TermsCheckbox({
+  accepted,
+  error,
+  onToggle,
+  onOpenTerms,
+}: {
+  accepted: boolean;
+  error: boolean;
+  onToggle: () => void;
+  onOpenTerms: () => void;
+}) {
+  return (
+    <div
+      className={`p-4 border transition-all duration-300 ${error && !accepted
+          ? "border-rose-500/40 bg-rose-500/5"
+          : "border-white/10 bg-white/[0.02]"
+        }`}
+    >
+      <label className="flex items-start gap-3 cursor-pointer group select-none">
+        {/* Custom checkbox */}
+        <div
+          onClick={onToggle}
+          className={`w-5 h-5 shrink-0 mt-0.5 border flex items-center justify-center transition-all duration-200 cursor-pointer ${accepted
+              ? "bg-emerald-500 border-emerald-400"
+              : error
+                ? "border-rose-500 bg-rose-500/10"
+                : "border-white/20 bg-transparent hover:border-emerald-500/50"
+            }`}
+        >
+          {accepted && (
+            <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+              <path
+                d="M1.5 5L4 7.5L8.5 2.5"
+                stroke="black"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          )}
+        </div>
+
+        <span className="text-[9px] font-mono text-slate-400 leading-relaxed uppercase tracking-wider">
+          I have read and agree to the{" "}
+          <button
+            type="button"
+            onClick={e => {
+              e.stopPropagation();
+              onOpenTerms();
+            }}
+            className="text-emerald-400 hover:text-emerald-300 underline underline-offset-2 transition-colors font-bold"
+          >
+            Terms & Conditions
+          </button>
+          {" "}and acknowledge that ArshMind does not provide financial advice.
+          {error && !accepted && (
+            <span className="block mt-1 text-rose-500 normal-case">
+              ↑ Required to proceed
+            </span>
+          )}
+        </span>
+      </label>
+    </div>
+  );
+}
+
 // ── Main BootScreen ──────────────────────────────────────────────────────────
 export default function BootScreen({ onComplete }: { onComplete: () => void }) {
   const [progress, setProgress] = useState(0);
   const [logs, setLogs] = useState<string[]>([]);
   const [isSigningIn, setIsSigningIn] = useState(false);
 
-  // Auth States
+  // Auth mode
   const [authMode, setAuthMode] = useState<"CHOICE" | "SIGNIN" | "SIGNUP" | "RESET">("CHOICE");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -257,10 +321,12 @@ export default function BootScreen({ onComplete }: { onComplete: () => void }) {
   const [authError, setAuthError] = useState("");
   const [authSuccessMsg, setAuthSuccessMsg] = useState("");
 
-  // T&C State
+  // T&C state — separate for Google SSO and email signup
+  const [googleTermsAccepted, setGoogleTermsAccepted] = useState(false);
+  const [googleTermsError, setGoogleTermsError] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
-  const [showTermsModal, setShowTermsModal] = useState(false);
   const [termsError, setTermsError] = useState(false);
+  const [showTermsModal, setShowTermsModal] = useState(false);
 
   const allLogs = [
     "// SYSTEM INITIALIZING...",
@@ -300,9 +366,16 @@ export default function BootScreen({ onComplete }: { onComplete: () => void }) {
     setConfirmPassword("");
     setTermsAccepted(false);
     setTermsError(false);
+    // Don't reset Google T&C when switching to email modes — preserve choice
   };
 
+  // ── Google SSO — now gated behind T&C ──────────────────────────────────
   const handleGoogleSignIn = async () => {
+    if (!googleTermsAccepted) {
+      setGoogleTermsError(true);
+      setAuthError("// COMPLIANCE_ERROR: You must accept the Terms & Conditions to continue.");
+      return;
+    }
     setIsSigningIn(true);
     setAuthError("");
     setAuthSuccessMsg("");
@@ -347,14 +420,11 @@ export default function BootScreen({ onComplete }: { onComplete: () => void }) {
 
   const handleEmailSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    // T&C gate — must be checked before anything else
     if (!termsAccepted) {
       setTermsError(true);
       setAuthError("// COMPLIANCE_ERROR: You must accept the Terms & Conditions to create an account.");
       return;
     }
-
     if (!email || !password || !confirmPassword) {
       setAuthError("// CAPTURE_ERROR: Complete all security coordinates.");
       return;
@@ -367,7 +437,6 @@ export default function BootScreen({ onComplete }: { onComplete: () => void }) {
       setAuthError("// CAPTURE_ERROR: Password is too weak (min 6 characters required).");
       return;
     }
-
     setIsSigningIn(true);
     setAuthError("");
     setAuthSuccessMsg("");
@@ -465,7 +534,8 @@ export default function BootScreen({ onComplete }: { onComplete: () => void }) {
                     key={i}
                     initial={{ opacity: 0, y: 4 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className={`leading-relaxed tracking-wider ${isActive ? "text-emerald-400 animate-pulse font-bold" : "text-slate-500"}`}
+                    className={`leading-relaxed tracking-wider ${isActive ? "text-emerald-400 animate-pulse font-bold" : "text-slate-500"
+                      }`}
                   >
                     {log}
                   </motion.div>
@@ -495,19 +565,33 @@ export default function BootScreen({ onComplete }: { onComplete: () => void }) {
               </div>
             )}
 
-            {/* CHOICE */}
+            {/* ── CHOICE MODE ── */}
             {authMode === "CHOICE" && (
-              <div className="w-full space-y-3">
+              <div className="w-full space-y-4">
                 <div className="text-[9px] font-mono text-slate-500 text-center uppercase tracking-widest mb-2">
                   // DEPLOY_AUTH_PROVIDER_PARAMETERS
                 </div>
+
+                {/* T&C for Google SSO — shown here, before the button */}
+                <TermsCheckbox
+                  accepted={googleTermsAccepted}
+                  error={googleTermsError}
+                  onToggle={() => {
+                    setGoogleTermsAccepted(v => !v);
+                    setGoogleTermsError(false);
+                    if (authError.includes("COMPLIANCE")) setAuthError("");
+                  }}
+                  onOpenTerms={() => setShowTermsModal(true)}
+                />
+
                 <button
                   onClick={handleGoogleSignIn}
                   disabled={isSigningIn}
-                  className="w-full py-3.5 border border-emerald-500/30 hover:border-emerald-500 bg-emerald-500/5 hover:bg-emerald-500/10 text-emerald-400 font-mono text-[10px] uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-2"
+                  className="w-full py-3.5 border border-emerald-500/30 hover:border-emerald-500 bg-emerald-500/5 hover:bg-emerald-500/10 text-emerald-400 font-mono text-[10px] uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isSigningIn ? "[ AUTHORIZING... ]" : "[ SIGN IN WITH GOOGLE ]"}
                 </button>
+
                 <div className="flex gap-3">
                   <button
                     onClick={() => clearModes("SIGNIN")}
@@ -524,6 +608,7 @@ export default function BootScreen({ onComplete }: { onComplete: () => void }) {
                     // REGISTER_OPERATIVE
                   </button>
                 </div>
+
                 {auth.currentUser && (
                   <div className="pt-3 text-center">
                     <button
@@ -537,7 +622,7 @@ export default function BootScreen({ onComplete }: { onComplete: () => void }) {
               </div>
             )}
 
-            {/* SIGN IN */}
+            {/* ── SIGN IN MODE ── */}
             {authMode === "SIGNIN" && (
               <form onSubmit={handleEmailSignIn} className="w-full space-y-4">
                 <div className="text-[9px] font-mono text-slate-500 text-center uppercase tracking-widest mb-1">
@@ -589,7 +674,7 @@ export default function BootScreen({ onComplete }: { onComplete: () => void }) {
               </form>
             )}
 
-            {/* SIGN UP */}
+            {/* ── SIGN UP MODE ── */}
             {authMode === "SIGNUP" && (
               <form onSubmit={handleEmailSignUp} className="w-full space-y-4">
                 <div className="text-[9px] font-mono text-slate-500 text-center uppercase tracking-widest mb-1">
@@ -637,51 +722,17 @@ export default function BootScreen({ onComplete }: { onComplete: () => void }) {
                   </div>
                 </div>
 
-                {/* ── Terms & Conditions Checkbox ── */}
-                <div className={`p-4 border transition-all duration-300 ${termsError && !termsAccepted ? "border-rose-500/40 bg-rose-500/5" : "border-white/10 bg-white/[0.02]"}`}>
-                  <label className="flex items-start gap-3 cursor-pointer group select-none">
-                    {/* Custom checkbox */}
-                    <div
-                      onClick={() => {
-                        setTermsAccepted(v => !v);
-                        setTermsError(false);
-                        if (authError.includes("COMPLIANCE")) setAuthError("");
-                      }}
-                      className={`w-5 h-5 shrink-0 mt-0.5 border flex items-center justify-center transition-all duration-200 cursor-pointer ${termsAccepted
-                        ? "bg-emerald-500 border-emerald-400"
-                        : termsError
-                          ? "border-rose-500 bg-rose-500/10"
-                          : "border-white/20 bg-transparent hover:border-emerald-500/50"
-                        }`}
-                    >
-                      {termsAccepted && (
-                        <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                          <path d="M1.5 5L4 7.5L8.5 2.5" stroke="black" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
-                      )}
-                    </div>
-
-                    <span className="text-[9px] font-mono text-slate-400 leading-relaxed uppercase tracking-wider">
-                      I have read and agree to the{" "}
-                      <button
-                        type="button"
-                        onClick={e => {
-                          e.stopPropagation();
-                          setShowTermsModal(true);
-                        }}
-                        className="text-emerald-400 hover:text-emerald-300 underline underline-offset-2 transition-colors font-bold"
-                      >
-                        Terms & Conditions
-                      </button>
-                      {" "}and acknowledge that ArshMind does not provide financial advice.
-                      {termsError && !termsAccepted && (
-                        <span className="block mt-1 text-rose-500 normal-case">
-                          ↑ Required to proceed
-                        </span>
-                      )}
-                    </span>
-                  </label>
-                </div>
+                {/* T&C for email signup */}
+                <TermsCheckbox
+                  accepted={termsAccepted}
+                  error={termsError}
+                  onToggle={() => {
+                    setTermsAccepted(v => !v);
+                    setTermsError(false);
+                    if (authError.includes("COMPLIANCE")) setAuthError("");
+                  }}
+                  onOpenTerms={() => setShowTermsModal(true)}
+                />
 
                 <button
                   type="submit"
@@ -699,7 +750,7 @@ export default function BootScreen({ onComplete }: { onComplete: () => void }) {
               </form>
             )}
 
-            {/* PASSWORD RESET */}
+            {/* ── PASSWORD RESET MODE ── */}
             {authMode === "RESET" && (
               <form onSubmit={handlePasswordReset} className="w-full space-y-4">
                 <div className="text-[9px] font-mono text-slate-500 text-center uppercase tracking-widest mb-1">

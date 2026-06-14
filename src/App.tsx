@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import Particles from "./components/Particles";
 import { UserProfile, Scenario, ScenarioSettings } from "./types";
-import { ARCHETYPES } from "./constants";
 import { auth, db } from "./lib/firebase";
 import { onAuthStateChanged, User } from "firebase/auth";
 import { doc, getDoc, setDoc, getDocFromServer } from "firebase/firestore";
@@ -20,9 +19,7 @@ const API_BASE = "https://arshmind.onrender.com";
 
 type View = "LANDING" | "BOOT" | "CHARACTER_SELECT" | "WIZARD" | "ANALYSIS" | "DASHBOARD";
 
-// ── Extended-only keys from Wizard contextual fields ─────────────────────────
-// These are serialized into extraContext by Wizard.tsx and must NOT be written
-// directly to Firestore since they are not in the UserProfile Firestore schema.
+// ── Extended-only keys from Wizard contextual fields ──────────────────────────
 const EXTENDED_ONLY_KEYS = new Set([
   "startupStage",
   "teamSize",
@@ -35,26 +32,21 @@ const EXTENDED_ONLY_KEYS = new Set([
   "workMode",
 ]);
 
-/**
- * Strips undefined values and extended-only Wizard fields before any setDoc call.
- * Firestore rejects undefined field values entirely.
- */
 function sanitizeForFirestore(data: Record<string, any>): Record<string, any> {
   const clean: Record<string, any> = {};
   for (const [key, value] of Object.entries(data)) {
-    if (EXTENDED_ONLY_KEYS.has(key)) continue;   // drop contextual-only fields
-    if (value === undefined) continue;             // drop undefined values
+    if (EXTENDED_ONLY_KEYS.has(key)) continue;
+    if (value === undefined) continue;
     clean[key] = value;
   }
   return clean;
 }
 
-// ── Fetch with AbortController timeout ───────────────────────────────────────
 async function fetchWithTimeout(url: string, options: RequestInit, timeoutMs: number) {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    const response = await fetch(`${API_BASE}/api/analyze`, { ...options, signal: controller.signal });
+    const response = await fetch(url, { ...options, signal: controller.signal });
     clearTimeout(timeoutId);
     return response;
   } catch (err) {
@@ -163,15 +155,63 @@ export default function App() {
     return unsub;
   }, []);
 
+  // ── Firestore write helpers ───────────────────────────────────────────────
+
+  /**
+   * Persist the full scenarios array to Firestore.
+   * Used by: post-analysis save, task toggles, vector init, replan result, restore.
+   */
+  const persistScenarios = async (newScenarios: Scenario[], uid: string) => {
+    const scPath = `users/${uid}/scenarios/latest`;
+    try {
+      await setDoc(doc(db, "users", uid, "scenarios", "latest"), {
+        scenarios: newScenarios,
+        updatedAt: serverTimestamp(),
+      });
+    } catch (err) {
+      handleFirestoreError(err, OperationType.WRITE, scPath);
+    }
+  };
+
+  /**
+   * Save a replan feedback entry to feedbackHistory subcollection.
+   * Keeps last 50 entries. Called before the AI response arrives so
+   * the record is durable even if the network call fails.
+   */
+  const persistFeedback = async (
+    uid: string,
+    scenarioId: string,
+    scenarioTitle: string,
+    feedbackText: string
+  ) => {
+    const feedPath = `users/${uid}/feedbackHistory/log`;
+    try {
+      const feedRef = doc(db, "users", uid, "feedbackHistory", "log");
+      const snap = await getDoc(feedRef);
+      const existing: any[] = snap.exists() ? (snap.data().entries ?? []) : [];
+
+      const entry = {
+        id: `${scenarioId}_${Date.now()}`,
+        scenarioId,
+        scenarioTitle,
+        feedbackText: feedbackText.trim(),
+        submittedAt: new Date().toISOString(),
+      };
+
+      const updated = [...existing, entry].slice(-50); // cap at 50
+      await setDoc(feedRef, { entries: updated, updatedAt: serverTimestamp() });
+    } catch (err) {
+      // Non-blocking — feedback history is nice-to-have
+      console.warn("Failed to save feedback history:", err);
+    }
+  };
+
+  // ── Wizard completion ─────────────────────────────────────────────────────
+
   const handleFinishWizard = async (finalProfile: UserProfile) => {
     setProfile(finalProfile);
     setView("ANALYSIS");
 
-    // ── Save profile to Firestore BEFORE calling AI ───────────────────────
-    // sanitizeForFirestore strips undefined values and extended-only Wizard
-    // fields (teamSize, startupStage, etc.) that Firestore cannot store.
-    // The full profile (with extended fields) stays in React state and is sent
-    // to the AI via the fetch call below — extraContext carries contextual info.
     const currentUser = user || auth.currentUser;
     if (currentUser) {
       const path = `users/${currentUser.uid}`;
@@ -180,10 +220,8 @@ export default function App() {
           ...finalProfile,
           userId: currentUser.uid,
         });
-
         const docRef = doc(db, "users", currentUser.uid);
         const docSnap = await getDoc(docRef);
-
         if (docSnap.exists()) {
           const existingData = docSnap.data();
           await setDoc(docRef, {
@@ -198,8 +236,6 @@ export default function App() {
             updatedAt: serverTimestamp(),
           });
         }
-
-        // Keep full profile in React state (extended fields intact for AI prompt)
         setProfile({ ...finalProfile, userId: currentUser.uid });
       } catch (error) {
         try {
@@ -210,7 +246,6 @@ export default function App() {
       }
     }
 
-    // ── Call AI Analyze with 50-second client timeout ─────────────────────
     try {
       const response = await fetchWithTimeout(
         `${API_BASE}/api/analyze`,
@@ -222,14 +257,9 @@ export default function App() {
         50000
       );
 
-      if (!response.ok) {
-        throw new Error(`Analysis failed with status: ${response.status}`);
-      }
-
+      if (!response.ok) throw new Error(`Analysis failed with status: ${response.status}`);
       const data = await response.json();
-      if (data.error) {
-        throw new Error(data.error);
-      }
+      if (data.error) throw new Error(data.error);
 
       const news: Scenario[] =
         data.scenarios && data.scenarios.length > 0
@@ -241,8 +271,7 @@ export default function App() {
               subtitle: "Balanced growth path",
               risk: "Low",
               viability: 85,
-              description:
-                "A calculated path focusing on steady accumulation and skill consolidation.",
+              description: "A calculated path focusing on steady accumulation and skill consolidation.",
               yearlyModifiers: [
                 { year: 1, salaryMult: 1, savingsMult: 1, notes: "Base consolidation" },
                 { year: 3, salaryMult: 1.3, savingsMult: 1.2, notes: "Experience premium" },
@@ -270,18 +299,9 @@ export default function App() {
         savingsRate: finalProfile.monthlySavings,
       }));
 
-      // Save scenarios to Firestore
       const activeUser = user || auth.currentUser;
       if (activeUser) {
-        const scPath = `users/${activeUser.uid}/scenarios/latest`;
-        try {
-          await setDoc(doc(db, "users", activeUser.uid, "scenarios", "latest"), {
-            scenarios: news,
-            updatedAt: serverTimestamp(),
-          });
-        } catch (err) {
-          handleFirestoreError(err, OperationType.WRITE, scPath);
-        }
+        await persistScenarios(news, activeUser.uid);
       }
 
       setView("DASHBOARD");
@@ -328,6 +348,8 @@ export default function App() {
     }
   };
 
+  // ── Settings ──────────────────────────────────────────────────────────────
+
   const handleUpdateSettings = async (newSettings: ScenarioSettings) => {
     setSettings(newSettings);
     if (user) {
@@ -343,6 +365,8 @@ export default function App() {
     }
   };
 
+  // ── Profile ───────────────────────────────────────────────────────────────
+
   const handleUpdateProfile = async (updatedFields: Partial<UserProfile>) => {
     const updated = { ...profile, ...updatedFields } as UserProfile;
     setProfile(updated);
@@ -351,10 +375,7 @@ export default function App() {
       try {
         await setDoc(
           doc(db, "users", user.uid),
-          {
-            ...sanitizeForFirestore(updatedFields as any),
-            updatedAt: serverTimestamp(),
-          },
+          { ...sanitizeForFirestore(updatedFields as any), updatedAt: serverTimestamp() },
           { merge: true }
         );
       } catch (error) {
@@ -363,20 +384,93 @@ export default function App() {
     }
   };
 
+  // ── Scenarios (generic — used by ScenarioExplorer for restore + select) ───
+
   const handleUpdateScenarios = async (newScenarios: Scenario[]) => {
     setScenarios(newScenarios);
+    if (user) await persistScenarios(newScenarios, user.uid);
+  };
+
+  // ── Replan (ScenarioExplorer recalibration) ───────────────────────────────
+  /**
+   * Called by ScenarioExplorer after a successful /api/replan-path call.
+   * Saves the raw feedback text to feedbackHistory AND the new scenario array.
+   */
+  const handleReplan = async (
+    originalScenario: Scenario,
+    feedbackText: string,
+    recalibratedScenario: Scenario
+  ) => {
+    // 1. Build updated scenarios array
+    const updatedScenarios = scenarios.map(s =>
+      s.id === recalibratedScenario.id ? recalibratedScenario : s
+    );
+
+    // 2. Optimistic UI update
+    setScenarios(updatedScenarios);
+
     if (user) {
-      const scPath = `users/${user.uid}/scenarios/latest`;
-      try {
-        await setDoc(doc(db, "users", user.uid, "scenarios", "latest"), {
-          scenarios: newScenarios,
-          updatedAt: serverTimestamp(),
-        });
-      } catch (err) {
-        handleFirestoreError(err, OperationType.WRITE, scPath);
-      }
+      // 3. Save feedback text (fire-and-forget, non-blocking)
+      persistFeedback(
+        user.uid,
+        originalScenario.id,
+        originalScenario.title,
+        feedbackText
+      );
+
+      // 4. Save updated scenarios array
+      await persistScenarios(updatedScenarios, user.uid);
     }
   };
+
+  // ── Action Plan mutations ─────────────────────────────────────────────────
+
+  /**
+   * Toggle a task's completedAt and persist the full scenarios array.
+   */
+  const handleToggleTask = async (scenarioId: string, taskId: string) => {
+    const updatedScenarios = scenarios.map(s => {
+      if (s.id !== scenarioId) return s;
+      return {
+        ...s,
+        actionPlan: (s.actionPlan ?? []).map(t =>
+          t.id === taskId
+            ? { ...t, completedAt: t.completedAt ? undefined : new Date().toISOString() }
+            : t
+        ),
+      };
+    });
+    setScenarios(updatedScenarios);
+    if (user) await persistScenarios(updatedScenarios, user.uid);
+  };
+
+  /**
+   * Set initializedAt on a scenario (activates the vector) and persist.
+   */
+  const handleInitializeVector = async (scenarioId: string) => {
+    const now = new Date().toISOString();
+    const updatedScenarios = scenarios.map(s =>
+      s.id === scenarioId ? { ...s, initializedAt: now } : s
+    );
+    setScenarios(updatedScenarios);
+    if (user) await persistScenarios(updatedScenarios, user.uid);
+  };
+
+  /**
+   * Switch active vector (Pro): clear old initializedAt, set new one, persist.
+   */
+  const handleSwitchVector = async (fromId: string, toId: string) => {
+    const now = new Date().toISOString();
+    const updatedScenarios = scenarios.map(s => {
+      if (s.id === fromId) return { ...s, initializedAt: undefined };
+      if (s.id === toId) return { ...s, initializedAt: now };
+      return s;
+    });
+    setScenarios(updatedScenarios);
+    if (user) await persistScenarios(updatedScenarios, user.uid);
+  };
+
+  // ── Sign out ──────────────────────────────────────────────────────────────
 
   const handleSignOut = async () => {
     try {
@@ -427,12 +521,13 @@ export default function App() {
           <motion.div key="boot" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
             <BootScreen
               onComplete={async () => {
-                if (user) {
-                  const docRef = doc(db, "users", user.uid);
+                const currentUser = user || auth.currentUser;
+                if (currentUser) {
+                  const docRef = doc(db, "users", currentUser.uid);
                   const docSnap = await getDoc(docRef);
                   if (docSnap.exists()) setProfile(docSnap.data() as UserProfile);
                   const scenariosSnap = await getDoc(
-                    doc(db, "users", user.uid, "scenarios", "latest")
+                    doc(db, "users", currentUser.uid, "scenarios", "latest")
                   );
                   if (scenariosSnap.exists()) {
                     const saved = scenariosSnap.data().scenarios || [];
@@ -495,6 +590,10 @@ export default function App() {
               onUpdateSettings={handleUpdateSettings}
               onUpdateProfile={handleUpdateProfile}
               onUpdateScenarios={handleUpdateScenarios}
+              onReplan={handleReplan}
+              onToggleTask={handleToggleTask}
+              onInitializeVector={handleInitializeVector}
+              onSwitchVector={handleSwitchVector}
               onEditProfile={() => setView("WIZARD")}
               onReset={() => setView("CHARACTER_SELECT")}
               onSignOut={handleSignOut}

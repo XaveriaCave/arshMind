@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { UserProfile, Scenario, ScenarioSettings } from "../../types";
-import { cn, formatCurrency, formatCompactNumber } from "../../lib/utils";
+import { cn } from "../../lib/utils";
 import Sidebar from "./Sidebar";
 import TimelineView from "./TimelineView";
 import ScenarioExplorer from "./ScenarioExplorer";
@@ -8,7 +8,7 @@ import FinancialProjections from "./FinancialProjections";
 import ActionPlan from "./ActionPlan";
 import ComparePaths from "./ComparePaths";
 import ProUpgrade from "./ProUpgrade";
-import { Menu, X, LayoutDashboard, Calendar, Search, TrendingUp, CheckSquare, BarChart2, Sun, Moon, Sparkles } from "lucide-react";
+import { Menu, Calendar, Search, TrendingUp, CheckSquare, BarChart2, Sun, Moon, Sparkles } from "lucide-react";
 
 export default function Dashboard({
   profile,
@@ -17,11 +17,15 @@ export default function Dashboard({
   onUpdateSettings,
   onUpdateProfile,
   onUpdateScenarios,
+  onReplan,
+  onToggleTask,
+  onInitializeVector,
+  onSwitchVector,
   onEditProfile,
   onReset,
   onSignOut,
   theme,
-  onToggleTheme
+  onToggleTheme,
 }: {
   profile: UserProfile;
   scenarios: Scenario[];
@@ -29,6 +33,12 @@ export default function Dashboard({
   onUpdateSettings: (s: ScenarioSettings) => void;
   onUpdateProfile: (fields: Partial<UserProfile>) => Promise<void>;
   onUpdateScenarios: (newScenarios: Scenario[]) => Promise<void>;
+  // Replan: called by ScenarioExplorer after a successful recalibration
+  onReplan: (original: Scenario, feedbackText: string, recalibrated: Scenario) => Promise<void>;
+  // Action Plan granular mutations (each persists to Firestore)
+  onToggleTask: (scenarioId: string, taskId: string) => Promise<void>;
+  onInitializeVector: (scenarioId: string) => Promise<void>;
+  onSwitchVector: (fromId: string, toId: string) => Promise<void>;
   onEditProfile: () => void;
   onReset: () => void;
   onSignOut: () => void;
@@ -80,7 +90,7 @@ export default function Dashboard({
 
       {/* Content Area */}
       <main className="flex-1 flex flex-col h-screen relative z-0 bg-[#0F1115] overflow-hidden">
-        {/* Mobile Header - and potentially desktop sticky toggle */}
+        {/* Mobile Header */}
         <header className="h-16 border-b border-white/5 flex items-center justify-between px-6 bg-black/90 backdrop-blur-md sticky top-0 z-30">
           <button onClick={() => setIsSidebarOpen(true)} className="p-2 -ml-2 text-slate-400 lg:hidden">
             <Menu size={20} />
@@ -105,7 +115,10 @@ export default function Dashboard({
         </header>
 
         <div className="flex-1 p-6 lg:p-12 overflow-y-auto no-scrollbar">
-          {activeTab === "timeline" && <TimelineView profile={profile} scenario={activeScenario} />}
+          {activeTab === "timeline" && (
+            <TimelineView profile={profile} scenario={activeScenario} />
+          )}
+
           {activeTab === "scenarios" && (
             <ScenarioExplorer
               scenarios={scenarios}
@@ -113,9 +126,11 @@ export default function Dashboard({
               onSelect={(id) => onUpdateSettings({ ...settings, activeScenarioId: id })}
               profile={profile}
               onUpdateScenarios={onUpdateScenarios}
+              onReplan={onReplan}
               onNavigateToUpgrade={() => setActiveTab("pro-upgrade")}
             />
           )}
+
           {activeTab === "financials" && (
             <FinancialProjections
               profile={profile}
@@ -124,16 +139,23 @@ export default function Dashboard({
               onUpdateSettings={onUpdateSettings}
             />
           )}
+
           {activeTab === "action" && (
             <ActionPlan
               scenarios={scenarios}
               activeScenarioId={settings.activeScenarioId}
               profile={profile}
-              onUpdateScenarios={onUpdateScenarios}
+              onToggleTask={onToggleTask}
+              onInitializeVector={onInitializeVector}
+              onSwitchVector={onSwitchVector}
               onNavigateToUpgrade={() => setActiveTab("pro-upgrade")}
             />
           )}
-          {activeTab === "compare" && <ComparePaths scenarios={scenarios} />}
+
+          {activeTab === "compare" && (
+            <ComparePaths scenarios={scenarios} />
+          )}
+
           {activeTab === "pro-upgrade" && (
             <ProUpgrade
               profile={profile}
