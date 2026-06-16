@@ -5,6 +5,7 @@ import {
   ArrowRight, Award, Flame, Calendar, BookOpen, ChevronRight,
   Layers, MessageSquare, Play, X, Star, BarChart3, TrendingUp
 } from "lucide-react";
+import { CookieBanner, LegalFooterLinks } from "./CookieConsent";
 
 interface DecisionDetail {
   id: string;
@@ -838,13 +839,12 @@ export default function LandingPage({
 
           <p className="text-[8px] text-slate-600 text-center sm:text-left">© 2026 ArshMind · ALL FUTURES SIMULATED</p>
 
-          <div className="flex gap-6">
-            <a href="#hero" className="hover:text-emerald-500 transition-colors">PRIVACY</a>
-            <a href="#hero" className="hover:text-emerald-500 transition-colors">TERMS</a>
-            <a href="#hero" className="hover:text-emerald-500 transition-colors">CONTACT</a>
-          </div>
+          <LegalFooterLinks />
         </div>
       </footer>
+
+      {/* 🍪 Cookie Consent Banner */}
+      <CookieBanner onConsent={() => {}} />
 
 
       {/* ⚔️ Decision Comparison Modal Overlay */}

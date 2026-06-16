@@ -14,6 +14,7 @@ import AnalysisScreen from "./components/Onboarding/AnalysisScreen";
 import Dashboard from "./components/Dashboard/Dashboard";
 import LandingPage from "./components/LandingPage";
 import { Sun, Moon } from "lucide-react";
+import { CookieBanner, saveKnownUser } from "./components/CookieConsent";
 
 const API_BASE = "https://arshmind.onrender.com";
 
@@ -112,6 +113,8 @@ export default function App() {
     const unsub = onAuthStateChanged(auth, async (u) => {
       setUser(u);
       if (u) {
+        // Persist known user for smart T&C skip
+        saveKnownUser(u.email ?? u.uid);
         const uId = u.uid;
         const profilePath = `users/${uId}`;
         try {
@@ -518,6 +521,11 @@ export default function App() {
     <div className="min-h-screen bg-black text-gray-300 font-sans selection:bg-green-500/30 overflow-x-hidden relative">
       <Particles />
       <div className="fixed inset-0 pointer-events-none z-10 opacity-[0.03] bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[length:100%_4px,3px_100%]" />
+
+      {/* 🍪 Global Cookie Banner — only on non-landing views */}
+      {view !== "LANDING" && (
+        <CookieBanner onConsent={() => {}} />
+      )}
 
       {view !== "DASHBOARD" && view !== "LANDING" && (
         <button

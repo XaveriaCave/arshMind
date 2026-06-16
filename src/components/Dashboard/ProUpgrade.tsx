@@ -344,7 +344,7 @@ export default function ProUpgrade({
               <div className="pt-2 space-y-3">
                 <div className="flex justify-between text-[10px] uppercase font-mono tracking-widest text-slate-500">
                   <span>Pro Subscription</span>
-                  <span className="text-white line-through">₹499/Mo</span>
+                  <span className="text-white line-through">$25/Mo</span>
                 </div>
                 <div className="flex justify-between text-xs uppercase font-mono tracking-widest font-bold text-white">
                   <span>Current Status</span>
