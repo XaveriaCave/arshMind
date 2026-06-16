@@ -55,6 +55,25 @@ async function fetchWithTimeout(url: string, options: RequestInit, timeoutMs: nu
   }
 }
 
+/** Fetch with timeout + one automatic retry on abort/timeout. */
+async function fetchWithRetry(
+  url: string,
+  options: RequestInit,
+  timeoutMs: number,
+  retries = 1
+): Promise<Response> {
+  try {
+    return await fetchWithTimeout(url, options, timeoutMs);
+  } catch (err) {
+    const isAbort = err instanceof Error && (err.name === "AbortError" || err.message.includes("timed out"));
+    if (isAbort && retries > 0) {
+      console.warn(`[arshMind] Analysis timed out — retrying (${retries} attempt(s) left)…`);
+      return fetchWithRetry(url, options, timeoutMs, retries - 1);
+    }
+    throw err;
+  }
+}
+
 export default function App() {
   const [view, setView] = useState<View>("LANDING");
   const [user, setUser] = useState<User | null>(null);
@@ -247,14 +266,14 @@ export default function App() {
     }
 
     try {
-      const response = await fetchWithTimeout(
+      const response = await fetchWithRetry(
         `${API_BASE}/api/analyze`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ profile: finalProfile }),
         },
-        50000
+        90000   // 90 s per attempt (Render cold-starts can be slow)
       );
 
       if (!response.ok) throw new Error(`Analysis failed with status: ${response.status}`);
@@ -306,11 +325,15 @@ export default function App() {
 
       setView("DASHBOARD");
     } catch (error) {
-      console.error("Analysis failed:", error);
-
       const isTimeout =
         error instanceof Error &&
         (error.name === "AbortError" || error.message.includes("timed out"));
+
+      if (isTimeout) {
+        console.warn("[arshMind] Analysis timed out after retries — using fallback trajectory.");
+      } else {
+        console.error("[arshMind] Analysis failed:", error);
+      }
 
       const fallback: Scenario[] = [
         {
