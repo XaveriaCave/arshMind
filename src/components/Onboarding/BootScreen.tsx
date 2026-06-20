@@ -255,8 +255,8 @@ function TermsCheckbox({
   return (
     <div
       className={`p-4 border transition-all duration-300 ${error && !accepted
-          ? "border-rose-500/40 bg-rose-500/5"
-          : "border-white/10 bg-white/[0.02]"
+        ? "border-rose-500/40 bg-rose-500/5"
+        : "border-white/10 bg-white/[0.02]"
         }`}
     >
       <label className="flex items-start gap-3 cursor-pointer group select-none">
@@ -264,10 +264,10 @@ function TermsCheckbox({
         <div
           onClick={onToggle}
           className={`w-5 h-5 shrink-0 mt-0.5 border flex items-center justify-center transition-all duration-200 cursor-pointer ${accepted
-              ? "bg-emerald-500 border-emerald-400"
-              : error
-                ? "border-rose-500 bg-rose-500/10"
-                : "border-white/20 bg-transparent hover:border-emerald-500/50"
+            ? "bg-emerald-500 border-emerald-400"
+            : error
+              ? "border-rose-500 bg-rose-500/10"
+              : "border-white/20 bg-transparent hover:border-emerald-500/50"
             }`}
         >
           {accepted && (
@@ -490,17 +490,17 @@ export default function BootScreen({ onComplete }: { onComplete: () => void }) {
 
       {/* Boot Rings */}
       <div className="relative mb-6 w-36 h-36 flex items-center justify-center shrink-0">
-        <div className="absolute w-32 h-32 rounded-full border border-emerald-500/10 animate-[spin_10s_linear_infinite]" />
-        <div className="absolute w-26 h-26 rounded-full border border-dashed border-emerald-500/20 animate-[spin_15s_linear_infinite_reverse]" />
+        <div className="absolute w-32 h-32 rounded-full border-2 border-emerald-500/10 animate-[spin_10s_linear_infinite]" />
+        <div className="absolute w-26 h-26 rounded-full border-2 border-dashed border-emerald-500/20 animate-[spin_15s_linear_infinite_reverse]" />
         <motion.div
           animate={{ scale: [0.95, 1.05, 0.95], opacity: [0.4, 0.8, 0.4] }}
           transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute w-24 h-24 rounded-full border border-emerald-500/30 flex items-center justify-center shadow-[0_0_25px_rgba(16,185,129,0.08)]"
+          className="absolute w-24 h-24 rounded-full border-2 border-emerald-500/30 flex items-center justify-center shadow-[0_0_25px_rgba(16,185,129,0.08)]"
         />
         <motion.div
           animate={{ scale: [0.9, 1.1, 0.9], opacity: [0.6, 0.9, 0.6] }}
           transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut", delay: 0.3 }}
-          className="absolute w-18 h-18 rounded-full border border-dashed border-emerald-500/40"
+          className="absolute w-18 h-18 rounded-full border-2 border-dashed border-emerald-500/40"
         />
         <div className="text-emerald-500 text-lg font-mono relative z-10 drop-shadow-[0_0_8px_rgba(16,185,129,0.8)]">
           ◆

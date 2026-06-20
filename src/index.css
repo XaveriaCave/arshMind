@@ -782,7 +782,15 @@ html.light .border-t-emerald-500 {
   }
 }
 
-/* .border {
+.border-2 {
   border-style: var(--tw-border-style);
   border-width: 2px;
-} */
+}
+
+html.light .border-white\/20 {
+  @supports (color: color-mix(in lab, red, red)) {
+    border-color:
+      color-mix(in oklab, #119445 20%, transparent);
+    border-width: 2px !important;
+  }
+}
