@@ -4,8 +4,8 @@ import { X, Cookie, Shield, FileText, Map, ChevronRight, ExternalLink } from "lu
 
 // ── Cookie Storage Keys ───────────────────────────────────────────────────────
 const COOKIE_CONSENT_KEY = "arshmind_cookie_consent";   // "accepted" | "rejected"
-const COOKIE_USER_KEY    = "arshmind_cookie_user";       // last accepted user email/uid
-const TC_ACCEPTED_KEY    = "arshmind_tc_accepted";       // stored user id when TC accepted
+const COOKIE_USER_KEY = "arshmind_cookie_user";       // last accepted user email/uid
+const TC_ACCEPTED_KEY = "arshmind_tc_accepted";       // stored user id when TC accepted
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 export function getCookieConsent(): "accepted" | "rejected" | null {
@@ -136,40 +136,40 @@ const SITEMAP = [
   {
     section: "LANDING",
     links: [
-      { label: "Hero",              href: "#hero" },
+      { label: "Hero", href: "#hero" },
       { label: "Scenario Explorer", href: "#explorer" },
-      { label: "Life Decisions",    href: "#decisions" },
-      { label: "System Features",   href: "#features" },
-      { label: "How It Works",      href: "#how" },
-      { label: "Field Reports",     href: "#proof" },
+      { label: "Life Decisions", href: "#decisions" },
+      { label: "System Features", href: "#features" },
+      { label: "How It Works", href: "#how" },
+      { label: "Field Reports", href: "#proof" },
       { label: "Enlist / Waitlist", href: "#waitlist" },
     ],
   },
   {
     section: "APPLICATION",
     links: [
-      { label: "Dashboard",              href: "#" },
-      { label: "Scenario Engine",        href: "#" },
-      { label: "Financial Projections",  href: "#" },
-      { label: "Action Plan",            href: "#" },
-      { label: "Timeline View",          href: "#" },
-      { label: "Compare Paths",          href: "#" },
+      { label: "Dashboard", href: "#" },
+      { label: "Scenario Engine", href: "#" },
+      { label: "Financial Projections", href: "#" },
+      { label: "Action Plan", href: "#" },
+      { label: "Timeline View", href: "#" },
+      { label: "Compare Paths", href: "#" },
     ],
   },
   {
     section: "ACCOUNT",
     links: [
-      { label: "Sign In (Google)",  href: "#" },
-      { label: "Profile Settings",  href: "#" },
-      { label: "Pro Upgrade",       href: "#" },
+      { label: "Sign In (Google)", href: "#" },
+      { label: "Profile Settings", href: "#" },
+      { label: "Pro Upgrade", href: "#" },
     ],
   },
   {
     section: "LEGAL",
     links: [
-      { label: "Privacy Policy",      href: "#privacy" },
-      { label: "Terms & Conditions",  href: "#terms" },
-      { label: "Contact Us",          href: "mailto:contact@arshmind.com" },
+      { label: "Privacy Policy", href: "#privacy" },
+      { label: "Terms & Conditions", href: "#terms" },
+      { label: "Contact Us", href: "mailto:contact@arshmind.com" },
     ],
   },
 ];
@@ -493,7 +493,7 @@ export function CookieBanner({
                       // COOKIE_PROTOCOL
                     </div>
                     <p className="text-[11px] cookie-banner-text leading-relaxed font-sans">
-                      We use cookies &amp; local storage to remember your theme, session state, and preferences — no
+                      We use cookies &amp; to remember your theme, session state, and preferences — no
                       third-party trackers.{" "}
                       <button
                         onClick={() => setShowPrivacy(true)}
@@ -532,13 +532,13 @@ export function CookieBanner({
 // ── Legal Footer Links ────────────────────────────────────────────────────────
 export function LegalFooterLinks() {
   const [showPrivacy, setShowPrivacy] = useState(false);
-  const [showTerms,   setShowTerms]   = useState(false);
+  const [showTerms, setShowTerms] = useState(false);
   const [showSitemap, setShowSitemap] = useState(false);
 
   return (
     <>
       <PrivacyModal open={showPrivacy} onClose={() => setShowPrivacy(false)} />
-      <TermsModal   open={showTerms}   onClose={() => setShowTerms(false)} />
+      <TermsModal open={showTerms} onClose={() => setShowTerms(false)} />
       <SitemapModal open={showSitemap} onClose={() => setShowSitemap(false)} />
 
       <div className="flex gap-6">
