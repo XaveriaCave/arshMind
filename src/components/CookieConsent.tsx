@@ -261,7 +261,7 @@ function HUDModal({
                   {icon}
                 </div>
                 <div>
-                  <div className="font-mono text-[8px] uppercase tracking-[0.25em] mb-1 hud-accent-label" style={{ color: accentColor }}>
+                  <div className="font-mono text-[10px] uppercase tracking-[0.25em] mb-1 hud-accent-label" style={{ color: accentColor }}>
                     // HUD_DISPLAY · ARSHMIND_OS
                   </div>
                   <h2 className="text-base font-bold hud-title uppercase tracking-tight font-mono">{title}</h2>
@@ -287,7 +287,7 @@ function HUDModal({
               className="hud-modal-footer px-6 py-4 border-t flex items-center justify-between"
               style={{ borderTopColor: `${accentColor}15` }}
             >
-              <span className="font-mono text-[8px] hud-footer-copy uppercase tracking-widest">
+              <span className="font-mono text-[10px] hud-footer-copy uppercase tracking-widest">
                 © 2026 ARSHMIND · ALL RIGHTS RESERVED
               </span>
               <button
@@ -405,7 +405,7 @@ export function SitemapModal({ open, onClose }: { open: boolean; onClose: () => 
             transition={{ delay: gi * 0.06 }}
             className="space-y-2"
           >
-            <div className="font-mono text-[8px] uppercase tracking-[0.25em] text-indigo-400 pb-2 border-b border-indigo-500/20">
+            <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-indigo-400 pb-2 border-b border-indigo-500/20">
               {group.section}
             </div>
             <ul className="space-y-1.5">
@@ -489,11 +489,11 @@ export function CookieBanner({
                     <Cookie size={16} className="text-emerald-500" />
                   </div>
                   <div>
-                    <div className="font-mono text-[8px] uppercase tracking-[0.25em] text-emerald-500 mb-1">
+                    <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-emerald-500 mb-1">
                       // COOKIE_PROTOCOL
                     </div>
                     <p className="text-[11px] cookie-banner-text leading-relaxed font-sans">
-                      We use cookies &amp; to remember your theme, session state, and preferences — no
+                      We use cookies to remember your theme, session state, and preferences — no
                       third-party trackers.{" "}
                       <button
                         onClick={() => setShowPrivacy(true)}

@@ -380,8 +380,8 @@ export default function LandingPage({
                   key={sc.id}
                   onClick={() => setActiveScenario(sc.id as any)}
                   className={`w-full text-left p-5 border transition-all duration-300 flex items-center justify-between ${activeScenario === sc.id
-                      ? "bg-white/5 border-emerald-500/30 shadow-[inset_3px_0_0_0_#10b981]"
-                      : "bg-[#0F1115] border-white/5 hover:border-white/10"
+                    ? "bg-white/5 border-emerald-500/30 shadow-[inset_3px_0_0_0_#10b981]"
+                    : "bg-[#0F1115] border-white/5 hover:border-white/10"
                     }`}
                 >
                   <div>
@@ -752,10 +752,10 @@ export default function LandingPage({
                     </span>
                   </h2>
 
-                  <p className="text-slate-500 text-[10px] font-mono tracking-widest uppercase">// STABLE BETA · LIMITED OPERATIVE SLOTS</p>
+                  <p className="text-slate-500 text-[10px] font-mono tracking-widest uppercase">// STABLE BETA v3.0 · LIMITED OPERATIVE SLOTS</p>
 
                   {/* Countdown Timer */}
-                  <div className="flex justify-center items-center gap-4 font-mono select-none">
+                  <div className="flex justify-center items-center gap-2 md:gap-4 font-mono select-none">
                     <div className="text-center bg-white/5 px-4 py-3 min-w-[70px] border border-white/5">
                       <div className="text-xl font-bold text-white">{String(countdown.days).padStart(2, "0")}</div>
                       <div className="text-[8px] text-slate-500 mt-1 uppercase">DAYS</div>
@@ -844,7 +844,7 @@ export default function LandingPage({
       </footer>
 
       {/* 🍪 Cookie Consent Banner */}
-      <CookieBanner onConsent={() => {}} />
+      <CookieBanner onConsent={() => { }} />
 
 
       {/* ⚔️ Decision Comparison Modal Overlay */}

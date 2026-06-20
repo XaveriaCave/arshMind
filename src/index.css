@@ -106,20 +106,42 @@
   }
 
   /* ── HUD Modal custom scrollbar ─────────────────────────── */
-  .custom-scrollbar::-webkit-scrollbar        { width: 3px; }
-  .custom-scrollbar::-webkit-scrollbar-track  { background: rgba(255,255,255,0.02); }
-  .custom-scrollbar::-webkit-scrollbar-thumb  { background: rgba(16,185,129,0.35); border-radius: 2px; }
-  .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(16,185,129,0.6); }
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 3px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.02);
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(16, 185, 129, 0.35);
+    border-radius: 2px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(16, 185, 129, 0.6);
+  }
 
   /* ── HUD scan-line animation ─────────────────────────────── */
   @keyframes hud-scan {
-    0%   { transform: translateY(-100%); opacity: 0.5; }
-    100% { transform: translateY(200%);  opacity: 0; }
+    0% {
+      transform: translateY(-100%);
+      opacity: 0.5;
+    }
+
+    100% {
+      transform: translateY(200%);
+      opacity: 0;
+    }
   }
+
   .hud-scan-line {
     position: absolute;
-    left: 0; right: 0; height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(16,185,129,0.4), transparent);
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(16, 185, 129, 0.4), transparent);
     animation: hud-scan 4s linear infinite;
     pointer-events: none;
     z-index: 0;
@@ -133,7 +155,7 @@
 
   /* ── HUD Modal Panel (dark default) ─────────────────────── */
   .hud-modal-panel {
-    background: linear-gradient(135deg, rgba(14,16,21,0.98) 0%, rgba(8,10,13,0.99) 100%);
+    background: linear-gradient(135deg, rgba(14, 16, 21, 0.98) 0%, rgba(8, 10, 13, 0.99) 100%);
     backdrop-filter: blur(24px);
   }
 
@@ -141,66 +163,92 @@
   .hud-modal-header {
     border-bottom-width: 1px;
     border-bottom-style: solid;
-    border-bottom-color: rgba(255,255,255,0.06);
+    border-bottom-color: rgba(255, 255, 255, 0.06);
   }
 
   /* ── HUD Modal Body ──────────────────────────────────────── */
-  .hud-modal-body { background: transparent; }
+  .hud-modal-body {
+    background: transparent;
+  }
 
   /* ── HUD Modal Footer ────────────────────────────────────── */
-  .hud-modal-footer { background: rgba(0,0,0,0.2); }
+  .hud-modal-footer {
+    background: rgba(0, 0, 0, 0.2);
+  }
 
   /* ── HUD Icon Wrapper ────────────────────────────────────── */
   .hud-icon-wrap {
-    background: rgba(255,255,255,0.04);
+    background: rgba(255, 255, 255, 0.04);
     border-width: 1px;
     border-style: solid;
   }
 
   /* ── HUD text colours ────────────────────────────────────── */
-  .hud-title      { color: #f1f5f9; }
-  .hud-subtitle   { color: #64748b; }
-  .hud-footer-copy { color: #334155; }
-  .hud-divider    { border-color: rgba(255,255,255,0.06); }
+  .hud-title {
+    color: #f1f5f9;
+  }
+
+  .hud-subtitle {
+    color: #64748b;
+  }
+
+  .hud-footer-copy {
+    color: #334155;
+  }
+
+  .hud-divider {
+    border-color: rgba(255, 255, 255, 0.06);
+  }
 
   /* ── HUD Close Button ────────────────────────────────────── */
   .hud-close-btn {
     color: #64748b;
-    border-color: rgba(255,255,255,0.06);
-    background: rgba(255,255,255,0.04);
+    border-color: rgba(255, 255, 255, 0.06);
+    background: rgba(255, 255, 255, 0.04);
   }
+
   .hud-close-btn:hover {
     color: #f1f5f9;
-    border-color: rgba(255,255,255,0.18);
-    background: rgba(255,255,255,0.08);
+    border-color: rgba(255, 255, 255, 0.18);
+    background: rgba(255, 255, 255, 0.08);
   }
 
   /* ── Policy Section ──────────────────────────────────────── */
-  .hud-policy-section { background: rgba(255,255,255,0.02); }
-  .hud-policy-text    { color: #94a3b8; }
+  .hud-policy-section {
+    background: rgba(255, 255, 255, 0.02);
+  }
+
+  .hud-policy-text {
+    color: #94a3b8;
+  }
 
   /* ── Sitemap Link ────────────────────────────────────────── */
-  .hud-sitemap-link { color: #64748b; }
+  .hud-sitemap-link {
+    color: #c1cad7;
+  }
 
   /* ── Cookie Banner Panel (dark) ──────────────────────────── */
   .cookie-banner-panel {
-    background: linear-gradient(135deg, rgba(10,12,16,0.98) 0%, rgba(6,8,11,0.99) 100%);
-    border: 1px solid rgba(16,185,129,0.25);
-    box-shadow: 0 0 40px rgba(16,185,129,0.08), 0 20px 40px rgba(0,0,0,0.6);
+    background: linear-gradient(135deg, rgba(10, 12, 16, 0.98) 0%, rgba(6, 8, 11, 0.99) 100%);
+    border: 1px solid rgba(16, 185, 129, 0.25);
+    box-shadow: 0 0 40px rgba(16, 185, 129, 0.08), 0 20px 40px rgba(0, 0, 0, 0.6);
     backdrop-filter: blur(20px);
   }
 
   /* ── Cookie Banner text ──────────────────────────────────── */
-  .cookie-banner-text { color: #cbd5e1; }
+  .cookie-banner-text {
+    color: #cbd5e1;
+  }
 
   /* ── Cookie Reject Button ────────────────────────────────── */
   .cookie-reject-btn {
-    border-color: rgba(255,255,255,0.1);
-    color: #64748b;
+    border-color: rgba(255, 255, 255, 0.1);
+    color: #fefefe;
   }
+
   .cookie-reject-btn:hover {
-    border-color: rgba(255,255,255,0.2);
-    color: #f1f5f9;
+    border-color: rgba(255, 255, 255, 0.2);
+    color: #62c4c3;
   }
 }
 
@@ -216,7 +264,7 @@ html.light .hud-backdrop {
 html.light .hud-modal-panel {
   background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%) !important;
   backdrop-filter: none !important;
-  box-shadow: 0 25px 60px rgba(15,23,42,0.18), 0 0 0 1px rgba(15,23,42,0.08) !important;
+  box-shadow: 0 25px 60px rgba(15, 23, 42, 0.18), 0 0 0 1px rgba(15, 23, 42, 0.08) !important;
 }
 
 html.light .hud-modal-header {
@@ -238,16 +286,28 @@ html.light .hud-icon-wrap {
   border-color: rgba(15, 23, 42, 0.12) !important;
 }
 
-html.light .hud-title    { color: #0f172a !important; }
-html.light .hud-subtitle { color: #64748b !important; }
-html.light .hud-footer-copy { color: #94a3b8 !important; }
-html.light .hud-divider  { border-color: #e2e8f0 !important; }
+html.light .hud-title {
+  color: #0f172a !important;
+}
+
+html.light .hud-subtitle {
+  color: #64748b !important;
+}
+
+html.light .hud-footer-copy {
+  color: #94a3b8 !important;
+}
+
+html.light .hud-divider {
+  border-color: #e2e8f0 !important;
+}
 
 html.light .hud-close-btn {
   color: #475569 !important;
   border-color: #e2e8f0 !important;
   background: #f1f5f9 !important;
 }
+
 html.light .hud-close-btn:hover {
   color: #0f172a !important;
   border-color: #cbd5e1 !important;
@@ -256,11 +316,17 @@ html.light .hud-close-btn:hover {
 
 html.light .hud-policy-section {
   background: #f8fafc !important;
-  border-left-color: currentColor !important; /* keeps accent colour */
+  border-left-color: currentColor !important;
+  /* keeps accent colour */
 }
-html.light .hud-policy-text { color: #334155 !important; }
 
-html.light .hud-sitemap-link { color: #475569 !important; }
+html.light .hud-policy-text {
+  color: #334155 !important;
+}
+
+html.light .hud-sitemap-link {
+  color: #475569 !important;
+}
 
 html.light .hud-scan-line {
   opacity: 0.15 !important;
@@ -269,18 +335,21 @@ html.light .hud-scan-line {
 /* Cookie banner — light */
 html.light .cookie-banner-panel {
   background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%) !important;
-  border: 1px solid rgba(16,185,129,0.35) !important;
-  box-shadow: 0 8px 32px rgba(15,23,42,0.12), 0 0 0 1px rgba(16,185,129,0.15) !important;
+  border: 1px solid rgba(16, 185, 129, 0.35) !important;
+  box-shadow: 0 8px 32px rgba(15, 23, 42, 0.12), 0 0 0 1px rgba(16, 185, 129, 0.15) !important;
   backdrop-filter: none !important;
 }
 
-html.light .cookie-banner-text { color: #1e293b !important; }
+html.light .cookie-banner-text {
+  color: #1e293b !important;
+}
 
 html.light .cookie-reject-btn {
   border-color: #cbd5e1 !important;
   color: #475569 !important;
   background: #f1f5f9 !important;
 }
+
 html.light .cookie-reject-btn:hover {
   border-color: #94a3b8 !important;
   color: #0f172a !important;
@@ -712,3 +781,8 @@ html.light .border-t-emerald-500 {
     margin-top: 30px;
   }
 }
+
+/* .border {
+  border-style: var(--tw-border-style);
+  border-width: 2px;
+} */
