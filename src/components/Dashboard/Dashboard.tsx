@@ -26,6 +26,7 @@ export default function Dashboard({
   onSignOut,
   theme,
   onToggleTheme,
+  userEmail,
 }: {
   profile: UserProfile;
   scenarios: Scenario[];
@@ -44,6 +45,7 @@ export default function Dashboard({
   onSignOut: () => void;
   theme: "dark" | "light";
   onToggleTheme: () => void;
+  userEmail: string;
 }) {
   const [activeTab, setActiveTab] = useState("timeline");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -160,6 +162,7 @@ export default function Dashboard({
             <ProUpgrade
               profile={profile}
               onUpdateProfile={onUpdateProfile}
+              userEmail={userEmail}
             />
           )}
         </div>

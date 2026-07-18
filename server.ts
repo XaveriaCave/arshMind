@@ -116,16 +116,62 @@ const SCENARIO_SCHEMA = {
   required: ["id", "title", "subtitle", "risk", "viability", "description", "stats", "milestones", "actionPlan"]
 };
 
+// ── Firebase Admin SDK (server-side, for webhook writes) ──────────────────────
+import { initializeApp, cert, getApps, getApp } from "firebase-admin/app";
+import { getFirestore, FieldValue, Firestore } from "firebase-admin/firestore";
+
+let adminDb: Firestore | null = null;
+
+function initFirebaseAdmin() {
+  if (getApps().length > 0) {
+    adminDb = getFirestore(getApp());
+    return;
+  }
+  const serviceAccountJson = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
+  if (!serviceAccountJson) {
+    console.warn("[ArshMind] FIREBASE_SERVICE_ACCOUNT_JSON not set — webhook Pro grants will not work.");
+    return;
+  }
+  try {
+    const serviceAccount = JSON.parse(serviceAccountJson);
+    const app = initializeApp({
+      credential: cert(serviceAccount),
+    });
+    adminDb = getFirestore(app);
+    console.log("[ArshMind] Firebase Admin SDK initialized.");
+  } catch (e) {
+    console.error("[ArshMind] Failed to parse FIREBASE_SERVICE_ACCOUNT_JSON:", e);
+  }
+}
+
+async function setUserPro(uid: string, isPro: boolean): Promise<void> {
+  if (!adminDb) throw new Error("Firebase Admin not initialized");
+  await adminDb.collection("users").doc(uid).set(
+    { isPro, proUpdatedAt: FieldValue.serverTimestamp() },
+    { merge: true }
+  );
+}
+
+// ── Dodo Payments SDK ─────────────────────────────────────────────────────────
+import DodoPayments from "dodopayments";
+
+function getDodoClient(): DodoPayments {
+  const apiKey = process.env.DODO_API_KEY;
+  if (!apiKey) throw new Error("DODO_API_KEY is not set");
+  // Use "test_mode" until you switch to production
+  const env = process.env.NODE_ENV === "production" ? "live_mode" : "test_mode";
+  return new DodoPayments({ bearerToken: apiKey, environment: env });
+}
+
 async function startServer() {
   const app = express();
   const PORT = 3000;
 
-  app.use(express.json());
+  // Raw body buffer needed for Dodo webhook signature verification.
+  // Must be registered BEFORE express.json() for the webhook route.
+  app.use("/api/webhook/dodo", express.raw({ type: "application/json" }));
 
-  const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || "")
-    .split(",")
-    .map(o => o.trim())
-    .filter(Boolean);
+  app.use(express.json());
 
   app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
     const origin = req.headers.origin || "";
@@ -137,14 +183,18 @@ async function startServer() {
     ];
     if (!origin || allowed.includes(origin)) {
       res.setHeader("Access-Control-Allow-Origin", origin || "*");
-      res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-      res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+      res.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS");
+      res.setHeader("Access-Control-Allow-Headers", "Content-Type, X-Dev-Grant-Secret");
     }
     if (req.method === "OPTIONS") return res.sendStatus(204);
     next();
   });
 
-  // API Routes
+  // Init Firebase Admin on startup
+  initFirebaseAdmin();
+
+  // ── Existing AI Routes ──────────────────────────────────────────────────────
+
   app.post("/api/analyze", analyzeRateLimiter, async (req, res) => {
     if (!ai) {
       return res.status(500).json({ error: "Gemini API key not configured" });
@@ -293,7 +343,204 @@ async function startServer() {
     }
   });
 
-  // Vite middleware for development
+  // ── Dodo Payments Routes ────────────────────────────────────────────────────
+
+  /**
+   * POST /api/create-checkout-session
+   * Creates a Dodo-hosted payment/subscription checkout URL.
+   * Body: { uid: string, email: string, plan: "monthly" | "one_time" }
+   * Returns: { checkoutUrl: string }
+   */
+  app.post("/api/create-checkout-session", async (req, res) => {
+    try {
+      const { uid, email, plan } = req.body as {
+        uid: string;
+        email: string;
+        plan: "monthly" | "one_time";
+      };
+
+      if (!uid || !email || !plan) {
+        return res.status(400).json({ error: "Missing required fields: uid, email, plan" });
+      }
+      if (plan !== "monthly" && plan !== "one_time") {
+        return res.status(400).json({ error: "plan must be 'monthly' or 'one_time'" });
+      }
+
+      const dodo = getDodoClient();
+
+      // Return URL — comes back to the app after checkout
+      const appUrl = process.env.APP_URL || "https://arshmind2.web.app";
+      const returnUrl = `${appUrl}?payment=success&uid=${encodeURIComponent(uid)}`;
+
+      const productId = plan === "monthly" 
+        ? process.env.DODO_MONTHLY_PRODUCT_ID 
+        : process.env.DODO_ONETIME_PRODUCT_ID;
+
+      if (!productId) {
+        throw new Error(`DODO_${plan === "monthly" ? "MONTHLY" : "ONETIME"}_PRODUCT_ID not configured`);
+      }
+
+      const session = await dodo.checkoutSessions.create({
+        product_cart: [{ product_id: productId, quantity: 1 }],
+        customer: { email, name: email.split("@")[0] },
+        billing_address: {
+          city: "Mumbai",
+          country: "IN",
+          state: "MH",
+          street: "123 Main St",
+          zipcode: "400001",
+        },
+        return_url: returnUrl,
+        metadata: { uid, plan },
+      });
+
+      const checkoutUrl = session.checkout_url;
+      if (!checkoutUrl) throw new Error("No checkout URL returned from Dodo");
+
+      console.log(`[Dodo] Checkout session created for uid=${uid} plan=${plan}`);
+      return res.json({ checkoutUrl });
+
+    } catch (error) {
+      console.error("[Dodo] create-checkout-session error:", error);
+      return res.status(500).json({
+        error: error instanceof Error ? error.message : "Failed to create checkout session"
+      });
+    }
+  });
+
+  /**
+   * POST /api/webhook/dodo
+   * Receives Dodo payment events and grants/revokes Pro access.
+   * Body is raw (Buffer) for signature verification.
+   */
+  app.post("/api/webhook/dodo", async (req, res) => {
+    const webhookSecret = process.env.DODO_WEBHOOK_SECRET;
+    if (!webhookSecret) {
+      console.error("[Dodo Webhook] DODO_WEBHOOK_SECRET not set — rejecting all webhook calls");
+      return res.status(500).json({ error: "Webhook secret not configured" });
+    }
+
+    // Dodo sends the signature in the "dodo-signature" header
+    const signature = req.headers["dodo-signature"] as string | undefined;
+    const rawBody = req.body as Buffer;
+
+    if (!signature || !rawBody) {
+      return res.status(400).json({ error: "Missing signature or body" });
+    }
+
+    // Signature verification using Node crypto (HMAC-SHA256)
+    const crypto = await import("crypto");
+    const expectedSig = crypto
+      .createHmac("sha256", webhookSecret)
+      .update(rawBody)
+      .digest("hex");
+
+    // Dodo sends "sha256=<hex>" or just "<hex>" — handle both
+    const receivedSig = signature.startsWith("sha256=")
+      ? signature.slice(7)
+      : signature;
+
+    try {
+      const signaturesMatch = crypto.timingSafeEqual(
+        Buffer.from(expectedSig, "hex"),
+        Buffer.from(receivedSig.padStart(expectedSig.length * 2, "0").slice(0, expectedSig.length * 2), "hex")
+      );
+
+      if (!signaturesMatch) {
+        console.warn("[Dodo Webhook] Signature mismatch — rejecting event");
+        return res.status(401).json({ error: "Invalid signature" });
+      }
+    } catch {
+      console.warn("[Dodo Webhook] Signature comparison failed — rejecting event");
+      return res.status(401).json({ error: "Invalid signature" });
+    }
+
+    let event: any;
+    try {
+      event = JSON.parse(rawBody.toString("utf8"));
+    } catch {
+      return res.status(400).json({ error: "Invalid JSON body" });
+    }
+
+    const eventType: string = event.type ?? event.event_type ?? "";
+    const uid: string | undefined =
+      event.data?.metadata?.uid ??
+      event.metadata?.uid ??
+      event.data?.customer?.metadata?.uid;
+
+    console.log(`[Dodo Webhook] Event: ${eventType} | uid: ${uid ?? "unknown"}`);
+
+    // Events that grant Pro access
+    const GRANT_EVENTS = [
+      "payment.succeeded",
+      "subscription.active",
+      "subscription.renewed",
+      "payment.completed",
+    ];
+
+    // Events that revoke Pro access
+    const REVOKE_EVENTS = [
+      "subscription.cancelled",
+      "subscription.expired",
+      "subscription.failed",
+    ];
+
+    if (uid) {
+      try {
+        if (GRANT_EVENTS.includes(eventType)) {
+          await setUserPro(uid, true);
+          console.log(`[Dodo Webhook] ✅ Pro GRANTED for uid=${uid}`);
+        } else if (REVOKE_EVENTS.includes(eventType)) {
+          await setUserPro(uid, false);
+          console.log(`[Dodo Webhook] ❌ Pro REVOKED for uid=${uid}`);
+        } else {
+          console.log(`[Dodo Webhook] Unhandled event type: ${eventType}`);
+        }
+      } catch (err) {
+        console.error(`[Dodo Webhook] Firestore write failed for uid=${uid}:`, err);
+        // Return 200 anyway — we don't want Dodo to retry on our Firestore errors
+      }
+    } else {
+      console.warn(`[Dodo Webhook] No uid in metadata for event ${eventType} — cannot update Firestore`);
+    }
+
+    return res.sendStatus(200);
+  });
+
+  /**
+   * POST /api/dev/grant-pro
+   * Testing-only route to manually set isPro on a user.
+   * Requires X-Dev-Grant-Secret header matching DEV_GRANT_SECRET env var.
+   * Body: { uid: string, grant: boolean }
+   */
+  app.post("/api/dev/grant-pro", async (req, res) => {
+    const devSecret = process.env.DEV_GRANT_SECRET;
+    const providedSecret = req.headers["x-dev-grant-secret"] as string | undefined;
+
+    if (!devSecret || !providedSecret || devSecret !== providedSecret) {
+      return res.status(403).json({ error: "Forbidden" });
+    }
+
+    const { uid, grant } = req.body as { uid?: string; grant?: boolean };
+
+    if (!uid || typeof grant !== "boolean") {
+      return res.status(400).json({ error: "Body must include uid (string) and grant (boolean)" });
+    }
+
+    try {
+      await setUserPro(uid, grant);
+      console.log(`[Dev Grant] isPro=${grant} set for uid=${uid}`);
+      return res.json({ success: true, uid, isPro: grant });
+    } catch (err) {
+      console.error("[Dev Grant] Error:", err);
+      return res.status(500).json({
+        error: err instanceof Error ? err.message : "Failed to update Pro status"
+      });
+    }
+  });
+
+  // ── Static / Vite Middleware ────────────────────────────────────────────────
+
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
       server: { middlewareMode: true },
