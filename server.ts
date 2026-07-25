@@ -169,7 +169,7 @@ async function startServer() {
 
   // Raw body buffer needed for Dodo webhook signature verification.
   // Must be registered BEFORE express.json() for the webhook route.
-  app.use("/api/webhook/dodo", express.raw({ type: "application/json" }));
+  app.use("/api/webhook/dodo", express.raw({ type: "*/*" }));
 
   app.use(express.json());
 
@@ -452,46 +452,21 @@ async function startServer() {
       return res.status(500).json({ error: "Webhook secret not configured" });
     }
 
-    // Dodo sends the signature in the "dodo-signature" header
-    const signature = req.headers["dodo-signature"] as string | undefined;
     const rawBody = req.body as Buffer;
-
-    if (!signature || !rawBody) {
-      return res.status(400).json({ error: "Missing signature or body" });
-    }
-
-    // Signature verification using Node crypto (HMAC-SHA256)
-    const crypto = await import("crypto");
-    const expectedSig = crypto
-      .createHmac("sha256", webhookSecret)
-      .update(rawBody)
-      .digest("hex");
-
-    // Dodo sends "sha256=<hex>" or just "<hex>" — handle both
-    const receivedSig = signature.startsWith("sha256=")
-      ? signature.slice(7)
-      : signature;
-
-    try {
-      const signaturesMatch = crypto.timingSafeEqual(
-        Buffer.from(expectedSig, "hex"),
-        Buffer.from(receivedSig.padStart(expectedSig.length * 2, "0").slice(0, expectedSig.length * 2), "hex")
-      );
-
-      if (!signaturesMatch) {
-        console.warn("[Dodo Webhook] Signature mismatch — rejecting event");
-        return res.status(401).json({ error: "Invalid signature" });
-      }
-    } catch {
-      console.warn("[Dodo Webhook] Signature comparison failed — rejecting event");
-      return res.status(401).json({ error: "Invalid signature" });
+    if (!rawBody) {
+      return res.status(400).json({ error: "Missing body" });
     }
 
     let event: any;
     try {
-      event = JSON.parse(rawBody.toString("utf8"));
-    } catch {
-      return res.status(400).json({ error: "Invalid JSON body" });
+      // Dodo Payments uses Standard Webhooks
+      const { Webhook } = await import("standardwebhooks");
+      const wh = new Webhook(webhookSecret);
+      // verify() requires a string payload and the raw headers
+      event = wh.verify(rawBody.toString("utf8"), req.headers as Record<string, string>);
+    } catch (err) {
+      console.warn("[Dodo Webhook] Signature comparison failed — rejecting event:", err instanceof Error ? err.message : err);
+      return res.status(401).json({ error: "Invalid signature" });
     }
 
     const eventType: string = event.type ?? event.event_type ?? "";
