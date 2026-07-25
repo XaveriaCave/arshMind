@@ -99,16 +99,10 @@ export default function App() {
     localStorage.setItem("theme", theme);
   }, [theme]);
 
-  // ── Handle payment success return URL ──────────────────────────────────────
+  // ── Handle payment return (URL params + postMessage from iframe) ─────────
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get("payment") === "success") {
-      // If loaded inside an iframe (the Dodo checkout modal), message the parent
-      if (window.self !== window.top) {
-        window.parent.postMessage({ type: "DODO_PAYMENT_SUCCESS" }, "*");
-        return;
-      }
-
+    // Helper: refresh profile from Firestore and show the success banner
+    const handlePaymentSuccess = async () => {
       setPaymentSuccess(true);
       // Clean the query string without reloading
       window.history.replaceState({}, document.title, window.location.pathname);
@@ -127,7 +121,30 @@ export default function App() {
       }, 3000); // 3 s — give webhook time to write
       // Auto-dismiss banner after 8 s
       setTimeout(() => setPaymentSuccess(false), 8000);
+    };
+
+    // 1️⃣  Handle direct URL return (when page is loaded at the top-level, not inside iframe)
+    const params = new URLSearchParams(window.location.search);
+    const paymentParam = params.get("payment");
+    if (paymentParam === "success") {
+      handlePaymentSuccess();
+    } else if (paymentParam === "failure") {
+      // Just clean the URL — no success banner
+      window.history.replaceState({}, document.title, window.location.pathname);
     }
+
+    // 2️⃣  Handle postMessage from payment-redirect.html running inside the checkout iframe
+    const onMessage = (event: MessageEvent) => {
+      if (!event.data || typeof event.data !== "object") return;
+      const { type } = event.data as { type: string; uid?: string };
+      if (type === "DODO_PAYMENT_SUCCESS") {
+        handlePaymentSuccess();
+      }
+      // DODO_PAYMENT_FAILURE: close the checkout UI in CheckoutModal
+      // (CheckoutModal listens for this separately via its own effect)
+    };
+    window.addEventListener("message", onMessage);
+    return () => window.removeEventListener("message", onMessage);
   }, []);
 
   useEffect(() => {

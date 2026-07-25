@@ -368,12 +368,17 @@ async function startServer() {
 
       const dodo = getDodoClient();
 
-      // Return URL — comes back to the app after checkout
+      // Neutral return URL — the redirect page calls /api/verify-payment to check the REAL status.
+      // This prevents false-positives when Dodo redirects to return_url even after failure.
       const appUrl = process.env.APP_URL || "https://arshmind2.web.app";
-      const returnUrl = `${appUrl}?payment=success&uid=${encodeURIComponent(uid)}`;
+      const baseRedirectUrl = `${appUrl}/payment-redirect.html?uid=${encodeURIComponent(uid)}`;
+      // return_url — Dodo always redirects here after checkout (success OR failure)
+      const returnUrl = `${baseRedirectUrl}&via=return`;
+      // cancel_url — only when user explicitly clicks Cancel/Back on Dodo's page
+      const cancelUrl = `${baseRedirectUrl}&via=cancel`;
 
-      const productId = plan === "monthly" 
-        ? process.env.DODO_MONTHLY_PRODUCT_ID 
+      const productId = plan === "monthly"
+        ? process.env.DODO_MONTHLY_PRODUCT_ID
         : process.env.DODO_ONETIME_PRODUCT_ID;
 
       if (!productId) {
@@ -391,20 +396,47 @@ async function startServer() {
           zipcode: "400001",
         },
         return_url: returnUrl,
+        cancel_url: cancelUrl,
         metadata: { uid, plan },
       });
 
       const checkoutUrl = session.checkout_url;
       if (!checkoutUrl) throw new Error("No checkout URL returned from Dodo");
 
-      console.log(`[Dodo] Checkout session created for uid=${uid} plan=${plan}`);
-      return res.json({ checkoutUrl });
+      // Also return session_id so the redirect page can verify the real payment status
+      const sessionId = session.session_id;
+      console.log(`[Dodo] Checkout session created for uid=${uid} plan=${plan} session=${sessionId}`);
+      return res.json({ checkoutUrl, sessionId });
 
     } catch (error) {
       console.error("[Dodo] create-checkout-session error:", error);
       return res.status(500).json({
         error: error instanceof Error ? error.message : "Failed to create checkout session"
       });
+    }
+  });
+
+  /**
+   * GET /api/verify-payment?session_id=xxx
+   * Retrieves the Dodo checkout session and returns whether payment succeeded.
+   * Called by payment-redirect.html to determine the real outcome.
+   */
+  app.get("/api/verify-payment", async (req, res) => {
+    const sessionId = req.query.session_id as string | undefined;
+    if (!sessionId) {
+      return res.status(400).json({ error: "session_id is required" });
+    }
+    try {
+      const dodo = getDodoClient();
+      const session = await dodo.checkoutSessions.retrieve(sessionId);
+      const status = session.payment_status ?? "unknown";
+      const succeeded = status === "succeeded";
+      console.log(`[Dodo] verify-payment session=${sessionId} status=${status} succeeded=${succeeded}`);
+      return res.json({ succeeded, status });
+    } catch (error) {
+      console.error("[Dodo] verify-payment error:", error);
+      // On error, default to failure — never grant Pro speculatively
+      return res.status(500).json({ succeeded: false, error: error instanceof Error ? error.message : String(error) });
     }
   });
 

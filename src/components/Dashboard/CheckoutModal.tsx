@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import {
   X,
@@ -292,6 +292,40 @@ export default function CheckoutModal({ uid, email, onClose }: CheckoutModalProp
   const [loading, setLoading] = useState<Plan | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  // Listen for payment outcome messages from the payment-redirect.html page inside the iframe
+  useEffect(() => {
+    const onMessage = (event: MessageEvent) => {
+      if (!event.data || typeof event.data !== "object") return;
+      const { type } = event.data as { type: string };
+      if (type === "DODO_PAYMENT_FAILURE") {
+        // Close the iframe and show an error on the plan selection screen
+        setCheckoutUrl(null);
+        setError("Payment was unsuccessful. Please try a different payment method or try again.");
+      }
+      // DODO_PAYMENT_SUCCESS is handled at the App level — just close this modal
+      if (type === "DODO_PAYMENT_SUCCESS") {
+        onClose();
+      }
+    };
+    window.addEventListener("message", onMessage);
+    return () => window.removeEventListener("message", onMessage);
+  }, [onClose]);
+
+  // Respond to payment-redirect.html asking for the stored session_id
+  useEffect(() => {
+    const onSessionRequest = (event: MessageEvent) => {
+      if (!event.data || typeof event.data !== "object") return;
+      if (event.data.type === "DODO_REQUEST_SESSION_ID") {
+        const storedId = sessionStorage.getItem("dodo_session_id") || "";
+        try {
+          (event.source as Window)?.postMessage({ type: "DODO_SESSION_ID", sessionId: storedId }, "*");
+        } catch { /* cross-origin guard */ }
+      }
+    };
+    window.addEventListener("message", onSessionRequest);
+    return () => window.removeEventListener("message", onSessionRequest);
+  }, []);
+
   const handleSelectPlan = async (plan: Plan) => {
     setError(null);
     setLoading(plan);
@@ -310,6 +344,11 @@ export default function CheckoutModal({ uid, email, onClose }: CheckoutModalProp
 
       if (!data.checkoutUrl) {
         throw new Error("No checkout URL returned. Please try again.");
+      }
+
+      // Store sessionId so payment-redirect.html can verify the real payment status
+      if (data.sessionId) {
+        sessionStorage.setItem("dodo_session_id", data.sessionId);
       }
 
       setCheckoutUrl(data.checkoutUrl);

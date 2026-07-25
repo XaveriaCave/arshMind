@@ -1,0 +1,127 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ArshMind — Payment</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #0A0A0C; color: #e2e8f0; font-family: 'Courier New', monospace;
+      display: flex; align-items: center; justify-content: center; min-height: 100vh;
+      text-align: center; padding: 2rem; }
+    .card { border: 1px solid #ffffff14; padding: 2.5rem 2rem; max-width: 380px; width: 100%; }
+    .icon { font-size: 2.5rem; margin-bottom: 1rem; }
+    .title { font-size: 0.875rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 0.5rem; }
+    .subtitle { font-size: 0.7rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.1em; line-height: 1.6; }
+    .success .title { color: #10b981; }
+    .failure .title { color: #ef4444; }
+    .spinner { width: 20px; height: 20px; border: 2px solid #334155; border-top-color: #10b981;
+      border-radius: 50%; animation: spin 0.8s linear infinite; margin: 1.5rem auto 0; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <div class="card" id="card">
+    <div class="icon" id="icon">&#x23F3;</div>
+    <div class="title" id="title">Verifying Payment&hellip;</div>
+    <div class="subtitle" id="subtitle">Please wait while we confirm your payment</div>
+    <div class="spinner" id="spinner"></div>
+  </div>
+  <script>
+    (function () {
+      var params = new URLSearchParams(window.location.search);
+      var uid    = params.get('uid') || '';
+      var via    = params.get('via') || 'return'; // 'return' | 'cancel'
+
+      var card     = document.getElementById('card');
+      var icon     = document.getElementById('icon');
+      var title    = document.getElementById('title');
+      var subtitle = document.getElementById('subtitle');
+      var spinner  = document.getElementById('spinner');
+
+      function showSuccess() {
+        card.classList.remove('failure'); card.classList.add('success');
+        icon.textContent = '\u2713';
+        title.textContent = 'Payment Successful!';
+        subtitle.textContent = 'Pro access is being activated. Returning to ArshMind\u2026';
+        spinner.style.borderTopColor = '#10b981';
+      }
+      function showFailure() {
+        card.classList.remove('success'); card.classList.add('failure');
+        icon.textContent = '\u2715';
+        title.textContent = 'Payment Failed';
+        subtitle.textContent = 'Your payment could not be processed. Returning to ArshMind\u2026';
+        spinner.style.borderTopColor = '#ef4444';
+      }
+      function notifyParent(isSuccess) {
+        try {
+          if (window.self !== window.top) {
+            window.parent.postMessage(
+              { type: isSuccess ? 'DODO_PAYMENT_SUCCESS' : 'DODO_PAYMENT_FAILURE', uid: uid }, '*');
+          }
+        } catch (e) {}
+      }
+      function handleOutcome(isSuccess) {
+        if (isSuccess) { showSuccess(); } else { showFailure(); }
+        notifyParent(isSuccess);
+        setTimeout(function () { notifyParent(isSuccess); }, 400);
+        // Fallback redirect when opened directly (not inside iframe)
+        if (window.self === window.top) {
+          setTimeout(function () {
+            var base = window.location.origin;
+            window.location.href = isSuccess
+              ? base + '/?payment=success&uid=' + encodeURIComponent(uid)
+              : base + '/?payment=failure';
+          }, 2000);
+        }
+      }
+
+      // --- Explicit user cancel ---
+      if (via === 'cancel') { handleOutcome(false); return; }
+
+      // --- Post-checkout return: verify real status with server ---
+      // Step 1: ask the parent window for the stored session_id
+      // Step 2: call /api/verify-payment with that session_id
+      var sessionId = '';
+      var verified  = false;
+      var timeout   = null;
+
+      function doVerify(sid) {
+        if (verified) return;
+        verified = true;
+        clearTimeout(timeout);
+
+        if (!sid) {
+          // No session_id available — safe default: failure (never grant Pro speculatively)
+          handleOutcome(false);
+          return;
+        }
+
+        fetch('/api/verify-payment?session_id=' + encodeURIComponent(sid))
+          .then(function (r) { return r.json(); })
+          .then(function (data) { handleOutcome(data.succeeded === true); })
+          .catch(function ()   { handleOutcome(false); });
+      }
+
+      // Listen for the parent to reply with the session_id
+      window.addEventListener('message', function onMsg(ev) {
+        if (!ev.data || typeof ev.data !== 'object') return;
+        if (ev.data.type === 'DODO_SESSION_ID') {
+          window.removeEventListener('message', onMsg);
+          doVerify(ev.data.sessionId || '');
+        }
+      });
+
+      // Ask parent for session_id
+      try {
+        if (window.self !== window.top) {
+          window.parent.postMessage({ type: 'DODO_REQUEST_SESSION_ID' }, '*');
+        }
+      } catch(e) {}
+
+      // Fallback: if parent doesn't reply within 4s, proceed without session_id
+      timeout = setTimeout(function () { doVerify(sessionId); }, 4000);
+    })();
+  </script>
+</body>
+</html>
