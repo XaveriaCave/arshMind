@@ -2,6 +2,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Shield, Zap, Flame, Sparkles, CheckCircle2, AlertCircle, X, Send, MessageSquare } from "lucide-react";
 import { UserProfile } from "../../types";
+import CheckoutModal from "./CheckoutModal";
 
 // ── Beta Pro Unavailable Modal ──────────────────────────────────────────────
 function BetaProModal({ onClose }: { onClose: () => void }) {
@@ -221,11 +222,14 @@ export function FeedbackButton() {
 export default function ProUpgrade({
   profile,
   onUpdateProfile,
+  userEmail,
 }: {
   profile: UserProfile;
   onUpdateProfile: (fields: Partial<UserProfile>) => Promise<void>;
+  userEmail: string;
 }) {
   const [showBetaModal, setShowBetaModal] = useState(false);
+  const [showCheckout, setShowCheckout] = useState(false);
 
   return (
     <div className="space-y-12">
@@ -343,35 +347,50 @@ export default function ProUpgrade({
 
               <div className="pt-2 space-y-3">
                 <div className="flex justify-between text-[10px] uppercase font-mono tracking-widest text-slate-500">
-                  <span>Pro Subscription</span>
-                  <span className="text-white line-through">$25/Mo</span>
+                  <span>Pro Monthly</span>
+                  <span className="text-white">$9/Mo</span>
                 </div>
-                <div className="flex justify-between text-xs uppercase font-mono tracking-widest font-bold text-white">
-                  <span>Current Status</span>
-                  <span className="text-amber-500">COMING SOON</span>
+                <div className="flex justify-between text-[10px] uppercase font-mono tracking-widest text-slate-500">
+                  <span>Pro Lifetime</span>
+                  <span className="text-amber-400 font-bold">$49 once</span>
                 </div>
 
-                {/* This button triggers the beta modal instead of activating */}
+                {/* Primary CTA — opens real checkout */}
                 <button
-                  onClick={() => setShowBetaModal(true)}
-                  className="w-full py-4 bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-400 font-mono font-bold text-[10px] uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-2"
+                  onClick={() => setShowCheckout(true)}
+                  className="w-full py-4 bg-amber-500 hover:bg-amber-400 border border-amber-500 text-black font-mono font-bold text-[10px] uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(245,158,11,0.25)]"
                 >
                   <Sparkles size={12} />
-                  Notify Me / Give Feedback
+                  Activate Pro
                 </button>
 
-                <p className="text-[8px] font-mono text-slate-600 text-center uppercase tracking-wide">
-                  Pro activation is temporarily disabled during Beta
-                </p>
+                {/* Secondary: feedback link */}
+                <button
+                  onClick={() => setShowBetaModal(true)}
+                  className="w-full py-2 text-slate-600 hover:text-slate-400 font-mono text-[8px] uppercase tracking-widest transition-colors"
+                >
+                  Give Feedback Instead
+                </button>
               </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* Beta modal overlay */}
+      {/* Beta / feedback modal */}
       <AnimatePresence>
         {showBetaModal && <BetaProModal onClose={() => setShowBetaModal(false)} />}
+      </AnimatePresence>
+
+      {/* Checkout modal */}
+      <AnimatePresence>
+        {showCheckout && (
+          <CheckoutModal
+            uid={profile.userId ?? ""}
+            email={userEmail}
+            onClose={() => setShowCheckout(false)}
+          />
+        )}
       </AnimatePresence>
 
       {/* Floating feedback button */}

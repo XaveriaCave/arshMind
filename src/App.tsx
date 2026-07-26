@@ -13,10 +13,10 @@ import Wizard from "./components/Wizard/Wizard";
 import AnalysisScreen from "./components/Onboarding/AnalysisScreen";
 import Dashboard from "./components/Dashboard/Dashboard";
 import LandingPage from "./components/LandingPage";
-import { Sun, Moon } from "lucide-react";
+import { Sun, Moon, CheckCircle2, X } from "lucide-react";
 import { CookieBanner, saveKnownUser } from "./components/CookieConsent";
 
-const API_BASE = "https://arshmind.onrender.com";
+const API_BASE = "https://arshmind.onrender.com"; //update_url
 
 type View = "LANDING" | "BOOT" | "CHARACTER_SELECT" | "WIZARD" | "ANALYSIS" | "DASHBOARD";
 
@@ -87,6 +87,7 @@ export default function App() {
     investmentReturn: 12,
   });
   const [isLoading, setIsLoading] = useState(true);
+  const [paymentSuccess, setPaymentSuccess] = useState(false);
   const [theme, setTheme] = useState<"dark" | "light">(() => {
     return (localStorage.getItem("theme") as "dark" | "light") || "dark";
   });
@@ -97,6 +98,54 @@ export default function App() {
     else root.classList.remove("light");
     localStorage.setItem("theme", theme);
   }, [theme]);
+
+  // ── Handle payment return (URL params + postMessage from iframe) ─────────
+  useEffect(() => {
+    // Helper: refresh profile from Firestore and show the success banner
+    const handlePaymentSuccess = async () => {
+      setPaymentSuccess(true);
+      // Clean the query string without reloading
+      window.history.replaceState({}, document.title, window.location.pathname);
+      // Re-fetch profile after a short delay to let the webhook update Firestore
+      setTimeout(async () => {
+        const currentUser = auth.currentUser;
+        if (currentUser) {
+          try {
+            const docRef = doc(db, "users", currentUser.uid);
+            const snap = await getDoc(docRef);
+            if (snap.exists()) setProfile(snap.data() as UserProfile);
+          } catch (e) {
+            console.warn("[ArshMind] Failed to refresh profile after payment:", e);
+          }
+        }
+      }, 3000); // 3 s — give webhook time to write
+      // Auto-dismiss banner after 8 s
+      setTimeout(() => setPaymentSuccess(false), 8000);
+    };
+
+    // 1️⃣  Handle direct URL return (when page is loaded at the top-level, not inside iframe)
+    const params = new URLSearchParams(window.location.search);
+    const paymentParam = params.get("payment");
+    if (paymentParam === "success") {
+      handlePaymentSuccess();
+    } else if (paymentParam === "failure") {
+      // Just clean the URL — no success banner
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+
+    // 2️⃣  Handle postMessage from payment-redirect.html running inside the checkout iframe
+    const onMessage = (event: MessageEvent) => {
+      if (!event.data || typeof event.data !== "object") return;
+      const { type } = event.data as { type: string; uid?: string };
+      if (type === "DODO_PAYMENT_SUCCESS") {
+        handlePaymentSuccess();
+      }
+      // DODO_PAYMENT_FAILURE: close the checkout UI in CheckoutModal
+      // (CheckoutModal listens for this separately via its own effect)
+    };
+    window.addEventListener("message", onMessage);
+    return () => window.removeEventListener("message", onMessage);
+  }, []);
 
   useEffect(() => {
     const testConnection = async () => {
@@ -524,8 +573,37 @@ export default function App() {
 
       {/* 🍪 Global Cookie Banner — only on non-landing views */}
       {view !== "LANDING" && (
-        <CookieBanner onConsent={() => {}} />
+        <CookieBanner onConsent={() => { }} />
       )}
+
+      {/* ✅ Payment success banner */}
+      <AnimatePresence>
+        {paymentSuccess && (
+          <motion.div
+            initial={{ opacity: 0, y: -60 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -60 }}
+            transition={{ type: "spring", damping: 24, stiffness: 200 }}
+            className="fixed top-4 left-1/2 -translate-x-1/2 z-[200] flex items-center gap-3 px-5 py-3.5 bg-[#0A0A0C] border border-emerald-500/40 shadow-[0_8px_32px_rgba(16,185,129,0.2)] max-w-sm w-full mx-4"
+          >
+            <CheckCircle2 size={18} className="text-emerald-500 shrink-0" />
+            <div className="flex-1 min-w-0">
+              <div className="text-[10px] font-mono font-bold text-white uppercase tracking-wide">
+                Payment Received!
+              </div>
+              <div className="text-[9px] font-mono text-slate-400 mt-0.5">
+                Pro is being activated — refreshing your access…
+              </div>
+            </div>
+            <button
+              onClick={() => setPaymentSuccess(false)}
+              className="shrink-0 p-1 text-slate-500 hover:text-white transition-colors"
+            >
+              <X size={12} />
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {view !== "DASHBOARD" && view !== "LANDING" && (
         <button
@@ -630,6 +708,7 @@ export default function App() {
               onSignOut={handleSignOut}
               theme={theme}
               onToggleTheme={() => setTheme(prev => (prev === "dark" ? "light" : "dark"))}
+              userEmail={user?.email ?? ""}
             />
           </motion.div>
         )}
