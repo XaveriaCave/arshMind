@@ -12,7 +12,7 @@ import {
   Shield,
 } from "lucide-react";
 
-const API_BASE = "https://corbin-pterodactylous-quinton.ngrok-free.dev";
+const API_BASE = "https://arshmind.onrender.com"; //update_url
 
 type Plan = "monthly" | "one_time";
 
