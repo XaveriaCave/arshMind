@@ -388,13 +388,10 @@ async function startServer() {
       const session = await dodo.checkoutSessions.create({
         product_cart: [{ product_id: productId, quantity: 1 }],
         customer: { email, name: email.split("@")[0] },
-        billing_address: {
-          city: "Mumbai",
-          country: "IN",
-          state: "MH",
-          street: "123 Main St",
-          zipcode: "400001",
-        },
+        // No billing_address here on purpose: Dodo's hosted checkout page
+        // collects the customer's real address/country and calculates tax
+        // (GST/VAT) accordingly. Hardcoding one jurisdiction here would
+        // misreport tax for every customer outside it.
         return_url: returnUrl,
         cancel_url: cancelUrl,
         metadata: { uid, plan },

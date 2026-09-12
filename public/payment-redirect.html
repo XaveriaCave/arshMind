@@ -91,6 +91,11 @@
       var uid = params.get('uid') || '';
       var via = params.get('via') || 'return';
 
+      // This page is served as a static file from Firebase Hosting, but the
+      // API lives on Render. A relative fetch('/api/...') would hit Firebase
+      // Hosting (404), not the backend — must be an absolute URL.
+      var API_BASE = 'https://arshmind.onrender.com'; //update_url
+
       var card = document.getElementById('card');
       var icon = document.getElementById('icon');
       var title = document.getElementById('title');
@@ -145,7 +150,7 @@
         verified = true;
         clearTimeout(timeout);
 
-        fetch('/api/verify-payment?session_id=' + encodeURIComponent(sid))
+        fetch(API_BASE + '/api/verify-payment?session_id=' + encodeURIComponent(sid))
           .then(function (r) { return r.json(); })
           .then(function (data) { handleOutcome(data.succeeded === true); })
           .catch(function () { handleOutcome(false); });

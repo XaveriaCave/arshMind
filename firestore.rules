@@ -39,6 +39,17 @@ service cloud.firestore {
         && (data.get('updatedAt', request.time) == request.time);
     }
 
+    // isPro is a payment-gated flag: only the server (Firebase Admin SDK via
+    // the Dodo webhook) may set it. Admin SDK writes bypass these rules
+    // entirely, so these only block clients from writing it themselves.
+    // (existing() isn't available on create, hence two variants.)
+    function isProSafeOnCreate() {
+      return incoming().get('isPro', false) == false;
+    }
+    function isProUnchangedOnUpdate() {
+      return incoming().get('isPro', false) == existing().get('isPro', false);
+    }
+
     // Settings Validation
     function isValidSettings(data) {
       let requiredFields = ['activeScenarioId', 'savingsRate', 'salaryGrowth', 'investmentReturn', 'updatedAt'];
@@ -66,10 +77,12 @@ service cloud.firestore {
       allow get: if true;
       allow create: if isOwner(userId)
         && isValidUserProfile(incoming()) 
-        && incoming().createdAt == request.time;
+        && incoming().createdAt == request.time
+        && isProSafeOnCreate();
       allow update: if isOwner(userId)
         && isValidUserProfile(incoming())
-        && incoming().createdAt == existing().createdAt;
+        && incoming().createdAt == existing().createdAt
+        && isProUnchangedOnUpdate();
 
       match /settings/current {
         allow get: if isOwner(userId);
